@@ -1014,7 +1014,6 @@ function FieldsDialog({
         </form>
       </DialogContent>
     </Dialog>
-    </>
   );
 }
 
