@@ -476,8 +476,20 @@ function AuditPage() {
             >
               <Download className="h-4 w-4" /> Exportar XLSX
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={isFetching}
+              onClick={() => refetch()}
+              title="Atualizar dados"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
           </div>
         </div>
+
 
 
         {isLoading ? (
