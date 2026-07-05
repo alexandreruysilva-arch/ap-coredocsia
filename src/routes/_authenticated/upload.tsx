@@ -1355,6 +1355,20 @@ function UploadPage() {
                     Limpar finalizados
                   </Button>
                 )}
+                {errorCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={retryFailed}
+                    disabled={isUploading}
+                    className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                    title="Reenvia apenas os arquivos que falharam"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Reenviar {errorCount} com erro
+                  </Button>
+                )}
+
                 <Button
                   size="sm"
                   variant="ghost"
