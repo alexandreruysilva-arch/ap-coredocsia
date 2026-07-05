@@ -192,17 +192,11 @@ function TipoDocumentoPage() {
   });
 
   const duplicate = useMutation({
-    mutationFn: async (source: DocTypeRow) => {
+    mutationFn: async ({ source, name, slug }: { source: DocTypeRow; name: string; slug: string }) => {
       if (!orgId) throw new Error("Organização não selecionada");
-      // Gera nome/slug únicos com sufixo incremental
-      const existing = (list.data ?? []).map((r) => r.name.toLowerCase());
-      let n = 1;
-      let newName = `${source.name} (cópia)`;
-      while (existing.includes(newName.toLowerCase())) {
-        n += 1;
-        newName = `${source.name} (cópia ${n})`;
-      }
-      const newSlug = slugify(newName);
+      const newName = name.trim();
+      if (!newName) throw new Error("Informe o nome");
+      const newSlug = (slug.trim() || slugify(newName)) || slugify(newName);
 
       const { data: created, error: insErr } = await supabase
         .from("document_types")
