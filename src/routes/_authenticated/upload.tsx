@@ -464,6 +464,16 @@ function UploadPage() {
   const [docTypeId, setDocTypeId] = useState<string>("none");
   const [isUploading, setIsUploading] = useState(false);
   const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude">(null);
+  const [aiProvider, setAiProvider] = useState<"gemini" | "claude">(() => {
+    if (typeof window === "undefined") return "gemini";
+    const saved = window.localStorage.getItem("upload:aiProvider");
+    return saved === "claude" ? "claude" : "gemini";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("upload:aiProvider", aiProvider);
+    }
+  }, [aiProvider]);
   const [batchProgress, setBatchProgress] = useState<{
     action: "extract" | "upload";
     current: number;
