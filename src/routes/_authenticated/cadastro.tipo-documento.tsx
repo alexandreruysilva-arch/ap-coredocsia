@@ -392,9 +392,18 @@ function TipoDocumentoPage() {
                         size="icon"
                         variant="ghost"
                         onClick={() => {
-                          if (confirm(`Duplicar "${r.name}" com todos os campos de indexação?`)) {
-                            duplicate.mutate(r);
+                          const base = `${r.name} (cópia)`;
+                          const existing = (list.data ?? []).map((x) => x.name.toLowerCase());
+                          let n = 1;
+                          let candidate = base;
+                          while (existing.includes(candidate.toLowerCase())) {
+                            n += 1;
+                            candidate = `${r.name} (cópia ${n})`;
                           }
+                          setCloneSource(r);
+                          setCloneName(candidate);
+                          setCloneSlug(slugify(candidate));
+                          setCloneSlugTouched(false);
                         }}
                         disabled={duplicate.isPending}
                         aria-label="Duplicar"
