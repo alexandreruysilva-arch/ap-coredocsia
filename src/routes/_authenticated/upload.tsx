@@ -929,6 +929,7 @@ function UploadPage() {
       const err = validateFile(item.file);
       if (err) {
         updateItem(item.id, { status: "error", error: err });
+        failedCount++;
         continue;
       }
       updateItem(item.id, { status: "uploading", progress: 0 });
