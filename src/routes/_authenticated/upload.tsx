@@ -873,13 +873,15 @@ function UploadPage() {
 
 
 
-  async function handleUploadAll() {
+  async function handleUploadAll(itemsOverride?: QueueItem[]) {
     if (!orgId || !userId) return toast.error("Organização não definida");
     if (companyId === "none") return toast.error("Selecione a empresa");
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
 
-    const queued = items.filter((i) => i.status === "queued");
+    const source = itemsOverride ?? items;
+    const queued = source.filter((i) => i.status === "queued");
     if (queued.length === 0) return;
+
 
     // Rola até o topo para acompanhar a barra de progresso.
     // Sobe por todos os ancestrais scrolláveis (window + <main> do app-shell).
