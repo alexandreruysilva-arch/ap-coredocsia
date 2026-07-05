@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CoreDocsIA — Plataforma Documental Inteligente" },
+      { title: "AP - CoreDocs IA — Plataforma Documental Inteligente" },
       {
         name: "description",
         content:
           "SaaS multi-tenant para processamento documental, OCR, IA e GED com auditoria, retenção e créditos.",
       },
       { name: "author", content: "AP - CoreDocs IA" },
-      { property: "og:title", content: "CoreDocsIA — Plataforma Documental Inteligente" },
+      { property: "og:title", content: "AP - CoreDocs IA — Plataforma Documental Inteligente" },
       {
         property: "og:description",
         content:
@@ -94,8 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "CoreDocsIA — Plataforma Documental Inteligente" },
-      { name: "twitter:description", content: "Processamento documental, OCR, IA, GED e auditoria em uma plataforma SaaS multi-tenant." },
+      { name: "twitter:title", content: "AP - CoreDocs IA — Plataforma Documental Inteligente" },
+      { name: "twitter:description", content: "Digitalize, processe e gerencie documentos com OCR, IA e GED em uma plataforma SaaS multi-tenant." },
+      { name: "description", content: "Digitalize, processe e gerencie documentos com OCR, IA e GED em uma plataforma SaaS multi-tenant." },
+      { property: "og:description", content: "Digitalize, processe e gerencie documentos com OCR, IA e GED em uma plataforma SaaS multi-tenant." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bdc4c44e-ce4d-472c-b05e-cc844c7464da/id-preview-828733a0--d7ec21ee-db5c-409a-a33b-4c7966432f91.lovable.app-1783215994104.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bdc4c44e-ce4d-472c-b05e-cc844c7464da/id-preview-828733a0--d7ec21ee-db5c-409a-a33b-4c7966432f91.lovable.app-1783215994104.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
