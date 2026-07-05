@@ -174,24 +174,29 @@ Regras de saída (siga RIGOROSAMENTE):
 - Se a informação não for encontrada com confiança, retorne string vazia "".`;
 
 
-    const requestBody = JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            { inline_data: { mime_type: mimeType, data: base64 } },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: "application/json",
+    // Lovable AI Gateway (OpenAI-compatible). Aceita imagens via image_url data URI.
+    const dataUri = `data:${mimeType};base64,${base64}`;
+    const buildBody = (modelName: string) =>
+      JSON.stringify({
+        model: modelName,
         temperature: 0,
-      },
-    });
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: dataUri } },
+            ],
+          },
+        ],
+      });
 
     // Tenta o modelo principal e, em caso de sobrecarga (503/429/5xx),
-    // faz retries com backoff e por fim tenta um modelo de fallback.
-    const MODELS_TO_TRY = Array.from(new Set([MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite"]));
+    // faz retries com backoff e por fim tenta modelos de fallback.
+    const MODELS_TO_TRY = Array.from(
+      new Set([MODEL, "google/gemini-2.5-flash", "google/gemini-2.5-flash-lite"]),
+    );
     const MAX_ATTEMPTS_PER_MODEL = 3;
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -199,15 +204,18 @@ Regras de saída (siga RIGOROSAMENTE):
     let resp: Response | null = null;
     let lastErrText = "";
     let lastStatus = 0;
+    const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
     outer: for (const modelName of MODELS_TO_TRY) {
       for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         try {
-          const r = await fetch(url, {
+          const r = await fetch(GATEWAY_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: requestBody,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: buildBody(modelName),
           });
           if (r.ok) {
             resp = r;
@@ -218,10 +226,8 @@ Regras de saída (siga RIGOROSAMENTE):
           const retriable = r.status === 503 || r.status === 429 || r.status >= 500;
           if (!retriable) {
             resp = r;
-            // recoloca corpo lido — abaixo usamos lastErrText
             break outer;
           }
-          // Backoff exponencial: 1s, 2s, 4s
           await sleep(1000 * Math.pow(2, attempt));
         } catch (e: any) {
           lastErrText = `network: ${e?.message ?? "fetch failed"}`;
@@ -236,24 +242,25 @@ Regras de saída (siga RIGOROSAMENTE):
         prompt: 0,
         completion: 0,
         total: 0,
-        error: `Gemini ${lastStatus || "network"}: ${lastErrText.slice(0, 200)}`,
+        error: `AI Gateway ${lastStatus || "network"}: ${lastErrText.slice(0, 200)}`,
       });
       const friendly =
-        lastStatus === 503
-          ? "O serviço de IA está temporariamente sobrecarregado. Tente novamente em alguns instantes."
+        lastStatus === 402
+          ? "Créditos de IA esgotados. Adicione créditos no workspace do Lovable."
           : lastStatus === 429
             ? "Limite de requisições atingido. Aguarde alguns segundos e tente novamente."
-            : `Falha ao processar o documento (${lastStatus || "rede"}). Tente novamente.`;
+            : lastStatus === 503
+              ? "O serviço de IA está temporariamente sobrecarregado. Tente novamente em alguns instantes."
+              : `Falha ao processar o documento (${lastStatus || "rede"}). Tente novamente.`;
       throw new Error(friendly);
     }
 
-
     const json = (await resp.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      usageMetadata?: {
-        promptTokenCount?: number;
-        candidatesTokenCount?: number;
-        totalTokenCount?: number;
+      choices?: Array<{ message?: { content?: string } }>;
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
       };
     };
 
