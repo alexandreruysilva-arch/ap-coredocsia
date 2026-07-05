@@ -97,6 +97,10 @@ function TipoDocumentoPage() {
   const [form, setForm] = useState<FormVals>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
   const [fieldsFor, setFieldsFor] = useState<DocTypeRow | null>(null);
+  const [cloneSource, setCloneSource] = useState<DocTypeRow | null>(null);
+  const [cloneName, setCloneName] = useState("");
+  const [cloneSlug, setCloneSlug] = useState("");
+  const [cloneSlugTouched, setCloneSlugTouched] = useState(false);
 
   const companies = useQuery({
     queryKey: ["companies-min", orgId],
@@ -188,17 +192,11 @@ function TipoDocumentoPage() {
   });
 
   const duplicate = useMutation({
-    mutationFn: async (source: DocTypeRow) => {
+    mutationFn: async ({ source, name, slug }: { source: DocTypeRow; name: string; slug: string }) => {
       if (!orgId) throw new Error("Organização não selecionada");
-      // Gera nome/slug únicos com sufixo incremental
-      const existing = (list.data ?? []).map((r) => r.name.toLowerCase());
-      let n = 1;
-      let newName = `${source.name} (cópia)`;
-      while (existing.includes(newName.toLowerCase())) {
-        n += 1;
-        newName = `${source.name} (cópia ${n})`;
-      }
-      const newSlug = slugify(newName);
+      const newName = name.trim();
+      if (!newName) throw new Error("Informe o nome");
+      const newSlug = (slug.trim() || slugify(newName)) || slugify(newName);
 
       const { data: created, error: insErr } = await supabase
         .from("document_types")
@@ -249,6 +247,7 @@ function TipoDocumentoPage() {
     onSuccess: () => {
       toast.success("Tipo duplicado com sucesso");
       queryClient.invalidateQueries({ queryKey: ["doc-types"] });
+      setCloneSource(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao duplicar tipo."),
   });
@@ -394,9 +393,18 @@ function TipoDocumentoPage() {
                         size="icon"
                         variant="ghost"
                         onClick={() => {
-                          if (confirm(`Duplicar "${r.name}" com todos os campos de indexação?`)) {
-                            duplicate.mutate(r);
+                          const base = `${r.name} (cópia)`;
+                          const existing = (list.data ?? []).map((x) => x.name.toLowerCase());
+                          let n = 1;
+                          let candidate = base;
+                          while (existing.includes(candidate.toLowerCase())) {
+                            n += 1;
+                            candidate = `${r.name} (cópia ${n})`;
                           }
+                          setCloneSource(r);
+                          setCloneName(candidate);
+                          setCloneSlug(slugify(candidate));
+                          setCloneSlugTouched(false);
                         }}
                         disabled={duplicate.isPending}
                         aria-label="Duplicar"
@@ -513,6 +521,59 @@ function TipoDocumentoPage() {
         orgId={orgId}
         onClose={() => setFieldsFor(null)}
       />
+
+      <Dialog open={!!cloneSource} onOpenChange={(o) => { if (!o) setCloneSource(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Duplicar tipo de documento</DialogTitle>
+            <DialogDescription>
+              {cloneSource ? `Copiando "${cloneSource.name}" com todos os campos de indexação.` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!cloneSource) return;
+              duplicate.mutate({ source: cloneSource, name: cloneName, slug: cloneSlug });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="clone-name">Nome *</Label>
+              <Input
+                id="clone-name"
+                value={cloneName}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCloneName(v);
+                  if (!cloneSlugTouched) setCloneSlug(slugify(v));
+                }}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="clone-slug">Slug</Label>
+              <Input
+                id="clone-slug"
+                value={cloneSlug}
+                onChange={(e) => {
+                  setCloneSlugTouched(true);
+                  setCloneSlug(e.target.value);
+                }}
+                placeholder="gerado a partir do nome"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCloneSource(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={duplicate.isPending || !cloneName.trim()}>
+                {duplicate.isPending ? "Duplicando..." : "Duplicar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
