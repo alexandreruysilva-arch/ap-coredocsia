@@ -93,8 +93,9 @@ export const extractFieldsWithGemini = createServerFn({ method: "POST" })
         .select("ai_gemini_model")
         .eq("id", orgId)
         .maybeSingle();
-      if (orgModel?.ai_gemini_model) MODEL = orgModel.ai_gemini_model;
+      if (orgModel?.ai_gemini_model) MODEL = normalizeModel(orgModel.ai_gemini_model);
     }
+    MODEL = normalizeModel(MODEL);
 
     const logContext = {
       orgId,
