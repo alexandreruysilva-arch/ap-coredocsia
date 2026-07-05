@@ -1011,17 +1011,18 @@ function UploadPage() {
     if (isUploading) return;
     const failed = items.filter((i) => i.status === "error");
     if (failed.length === 0) return;
-    setItems((p) =>
-      p.map((i) =>
-        i.status === "error"
-          ? { ...i, status: "queued", error: undefined, progress: 0 }
-          : i,
-      ),
-    );
-    // Aguarda o estado propagar antes de reprocessar.
-    await new Promise((r) => setTimeout(r, 0));
+    flushSync(() => {
+      setItems((p) =>
+        p.map((i) =>
+          i.status === "error"
+            ? { ...i, status: "queued", error: undefined, progress: 0 }
+            : i,
+        ),
+      );
+    });
     await handleUploadAll();
   }
+
 
 
   function clearAll() {
