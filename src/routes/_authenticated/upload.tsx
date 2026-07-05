@@ -948,6 +948,7 @@ function UploadPage() {
         });
 
         updateItem(item.id, { status: "done", progress: 100 });
+        successCount++;
 
         // Soma de caracteres corrigidos manualmente vs. extração da IA
         const logId = item.aiUsage?.log_id;
