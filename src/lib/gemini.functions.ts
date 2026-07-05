@@ -264,12 +264,12 @@ Regras de saída (siga RIGOROSAMENTE):
       };
     };
 
-    const promptTokens = json.usageMetadata?.promptTokenCount ?? 0;
-    const completionTokens = json.usageMetadata?.candidatesTokenCount ?? 0;
+    const promptTokens = json.usage?.prompt_tokens ?? 0;
+    const completionTokens = json.usage?.completion_tokens ?? 0;
     const totalTokens =
-      json.usageMetadata?.totalTokenCount ?? promptTokens + completionTokens;
+      json.usage?.total_tokens ?? promptTokens + completionTokens;
 
-    const text = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+    const text = json.choices?.[0]?.message?.content ?? "{}";
     let extracted: Record<string, unknown> = {};
     try {
       extracted = JSON.parse(text);
