@@ -97,6 +97,10 @@ function TipoDocumentoPage() {
   const [form, setForm] = useState<FormVals>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
   const [fieldsFor, setFieldsFor] = useState<DocTypeRow | null>(null);
+  const [cloneSource, setCloneSource] = useState<DocTypeRow | null>(null);
+  const [cloneName, setCloneName] = useState("");
+  const [cloneSlug, setCloneSlug] = useState("");
+  const [cloneSlugTouched, setCloneSlugTouched] = useState(false);
 
   const companies = useQuery({
     queryKey: ["companies-min", orgId],
