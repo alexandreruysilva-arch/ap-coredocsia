@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  RefreshCw,
+
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -144,7 +146,7 @@ function AuditPage() {
   const PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
-  const { data: logs = [], isLoading } = useQuery({
+  const { data: logs = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ["ai-usage-logs", orgId],
     enabled: !!orgId,
     queryFn: async (): Promise<AiLogRow[]> => {
@@ -474,8 +476,20 @@ function AuditPage() {
             >
               <Download className="h-4 w-4" /> Exportar XLSX
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={isFetching}
+              onClick={() => refetch()}
+              title="Atualizar dados"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
           </div>
         </div>
+
 
 
         {isLoading ? (
