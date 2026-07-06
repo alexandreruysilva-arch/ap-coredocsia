@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { Ban, CircleCheck, Pencil, Plus, Sparkles, Trash2, Users } from "lucide-react";
+import { Ban, CircleCheck, KeyRound, Pencil, Plus, Sparkles, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-stub";
@@ -41,6 +41,7 @@ import {
   deleteUserAccount,
   inviteUserAccess,
   listOrgUserAccess,
+  resetUserPassword,
   setUserSuspended,
   updateUserAccess,
 } from "@/lib/users.functions";
@@ -112,6 +113,7 @@ function UsuarioPage() {
   const listFn = useServerFn(listOrgUserAccess);
   const deleteFn = useServerFn(deleteUserAccount);
   const suspendFn = useServerFn(setUserSuspended);
+  const resetPwdFn = useServerFn(resetUserPassword);
 
 
 
@@ -119,6 +121,8 @@ function UsuarioPage() {
   const [editing, setEditing] = useState<EditingCtx | null>(null);
   const [form, setForm] = useState<FormVals>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
+  const [resetTarget, setResetTarget] = useState<{ userId: string; name: string } | null>(null);
+  const [newPwd, setNewPwd] = useState("");
 
   const companies = useQuery({
     queryKey: ["companies-min", orgId],
@@ -267,6 +271,17 @@ function UsuarioPage() {
     onSuccess: (_d, v) => {
       toast.success(v.suspend ? "Usuário suspenso" : "Usuário reativado");
       queryClient.invalidateQueries({ queryKey: ["user-access", orgId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: async (v: { userId: string; password: string }) =>
+      resetPwdFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Senha redefinida");
+      setResetTarget(null);
+      setNewPwd("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -462,6 +477,18 @@ function UsuarioPage() {
                         size="icon"
                         variant="ghost"
                         onClick={() => {
+                          setNewPwd("");
+                          setResetTarget({ userId: g.userId, name: g.name });
+                        }}
+                        aria-label="Redefinir senha"
+                        title="Redefinir senha"
+                      >
+                        <KeyRound className="h-4 w-4 text-blue-700" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
                           if (
                             confirm(
                               `Excluir o usuário "${g.name}"? Esta ação remove o acesso a todos os tipos de documento.`,
@@ -615,6 +642,64 @@ function UsuarioPage() {
               </Button>
               <Button type="submit" disabled={saving}>
                 {saving ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!resetTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setResetTarget(null);
+            setNewPwd("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redefinir senha</DialogTitle>
+            <DialogDescription>
+              Defina uma nova senha para <strong>{resetTarget?.name}</strong>. O usuário poderá alterá-la depois no primeiro acesso.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!resetTarget) return;
+              if (newPwd.length < 6) {
+                toast.error("A senha deve ter pelo menos 6 caracteres");
+                return;
+              }
+              resetPassword.mutate({ userId: resetTarget.userId, password: newPwd });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="newPwd">Nova senha *</Label>
+              <Input
+                id="newPwd"
+                type="password"
+                autoComplete="new-password"
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setResetTarget(null);
+                  setNewPwd("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={resetPassword.isPending}>
+                {resetPassword.isPending ? "Salvando…" : "Redefinir"}
               </Button>
             </DialogFooter>
           </form>
