@@ -113,6 +113,7 @@ function UsuarioPage() {
   const listFn = useServerFn(listOrgUserAccess);
   const deleteFn = useServerFn(deleteUserAccount);
   const suspendFn = useServerFn(setUserSuspended);
+  const resetPwdFn = useServerFn(resetUserPassword);
 
 
 
@@ -120,6 +121,8 @@ function UsuarioPage() {
   const [editing, setEditing] = useState<EditingCtx | null>(null);
   const [form, setForm] = useState<FormVals>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
+  const [resetTarget, setResetTarget] = useState<{ userId: string; name: string } | null>(null);
+  const [newPwd, setNewPwd] = useState("");
 
   const companies = useQuery({
     queryKey: ["companies-min", orgId],
