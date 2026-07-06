@@ -1101,7 +1101,7 @@ function UploadPage() {
                 </span>
               </div>
 
-              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/25">
+              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/25">
                 <div
                   className="h-full rounded-full bg-white transition-all"
                   style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
