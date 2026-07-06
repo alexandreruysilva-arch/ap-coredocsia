@@ -500,9 +500,13 @@ function AuditPage() {
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : !detailsReady ? (
+          <p className="text-sm text-muted-foreground">
+            Selecione uma <strong>empresa</strong> e um <strong>tipo de documento</strong> para exibir os detalhes por arquivo.
+          </p>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhuma indexação por IA registrada ainda.
+            Nenhuma indexação por IA registrada para os filtros selecionados.
           </p>
         ) : (
           <div className="overflow-x-auto -mx-3 px-3">
