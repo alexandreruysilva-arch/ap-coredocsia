@@ -234,9 +234,9 @@ function AuditPage() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  const totals = useMemo(() => {
+  function computeTotals(rows: AiLogRow[]) {
     const t = {
-      files: filtered.length,
+      files: rows.length,
       success: 0,
       failed: 0,
       prompt: 0,
@@ -250,7 +250,7 @@ function AuditPage() {
       accuracySum: 0,
       accuracyCount: 0,
     };
-    for (const l of filtered) {
+    for (const l of rows) {
       if (l.success) t.success++;
       else t.failed++;
       t.prompt += l.prompt_tokens;
@@ -270,11 +270,14 @@ function AuditPage() {
       }
     }
     return t;
-  }, [filtered]);
+  }
+
+  // Cards e somatório por empresa refletem SEMPRE todos os registros da organização.
+  const totals = useMemo(() => computeTotals(logs), [logs]);
 
   const byCompany = useMemo(() => {
     const map = new Map<string, { files: number; tokens: number; cost: number }>();
-    for (const l of filtered) {
+    for (const l of logs) {
       const k = l.company_name ?? "—";
       const cur = map.get(k) ?? { files: 0, tokens: 0, cost: 0 };
       cur.files += 1;
@@ -283,7 +286,10 @@ function AuditPage() {
       map.set(k, cur);
     }
     return [...map.entries()].sort((a, b) => b[1].cost - a[1].cost);
-  }, [filtered]);
+  }, [logs]);
+
+  // Grid "Detalhes por arquivo" só é preenchido quando empresa E tipo estão selecionados.
+  const detailsReady = companyFilter !== "__all__" && docTypeFilter !== "__all__";
 
   const deleteLog = useMutation({
     mutationFn: async (id: string) => {
@@ -494,9 +500,13 @@ function AuditPage() {
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : !detailsReady ? (
+          <p className="text-sm text-muted-foreground">
+            Selecione uma <strong>empresa</strong> e um <strong>tipo de documento</strong> para exibir os detalhes por arquivo.
+          </p>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhuma indexação por IA registrada ainda.
+            Nenhuma indexação por IA registrada para os filtros selecionados.
           </p>
         ) : (
           <div className="overflow-x-auto -mx-3 px-3">
