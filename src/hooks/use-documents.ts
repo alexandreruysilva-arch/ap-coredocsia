@@ -46,19 +46,21 @@ export function useDocumentsList(params: ListDocumentsParams) {
         return q;
       };
 
-      // Pagina via cursor em created_at para contornar o teto de max-rows do PostgREST
+      // Paginação por offset/range para evitar problemas de empates em created_at
+      // (cursor .lt(created_at) descartava linhas com timestamp igual e podia parar
+      // prematuramente antes de trazer todos os documentos do tipo).
       const PAGE = 1000;
       const all: DocumentRow[] = [];
-      let cursor: string | null = null;
-      while (true) {
-        let q = buildQuery().limit(PAGE);
-        if (cursor) q = q.lt("created_at", cursor);
-        const { data, error } = await q;
+      let from = 0;
+      // Safety net para evitar loop infinito em caso de bug do backend
+      const HARD_MAX = 1_000_000;
+      while (from < HARD_MAX) {
+        const { data, error } = await buildQuery().range(from, from + PAGE - 1);
         if (error) throw error;
         const rows = data ?? [];
         all.push(...rows);
         if (rows.length < PAGE) break;
-        cursor = rows[rows.length - 1].created_at as string;
+        from += PAGE;
       }
       return all;
     },
