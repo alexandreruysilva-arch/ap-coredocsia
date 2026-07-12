@@ -29,6 +29,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractFieldsWithGemini } from "@/lib/gemini.functions";
 import { compressImageIfNeeded } from "@/lib/image-compress";
 import { extractFieldsWithClaude } from "@/lib/claude.functions";
+import { extractFieldsWithGrok } from "@/lib/grok.functions";
+
 import { lookupByKey } from "@/lib/lookup";
 import { cn } from "@/lib/utils";
 
@@ -131,7 +133,7 @@ interface QueueItem {
   aiUsage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; log_id?: string | null } | null;
   aiOriginalValues?: Record<string, string>;
   aiStatus?: "success" | "failed" | "incomplete";
-  aiProvider?: "gemini" | "claude";
+  aiProvider?: "gemini" | "claude" | "grok";
   aiMessage?: string;
   expanded: boolean;
 }
@@ -466,17 +468,26 @@ function UploadPage() {
   const [companyId, setCompanyId] = useState<string>("none");
   const [docTypeId, setDocTypeId] = useState<string>("none");
   const [isUploading, setIsUploading] = useState(false);
-  const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude">(null);
-  const [aiProvider, setAiProvider] = useState<"gemini" | "claude">(() => {
+  const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude" | "grok">(null);
+  const [aiProvider, setAiProvider] = useState<"gemini" | "claude" | "grok">(() => {
     if (typeof window === "undefined") return "gemini";
     const saved = window.localStorage.getItem("upload:aiProvider");
-    return saved === "claude" ? "claude" : "gemini";
+    return saved === "claude" || saved === "grok" ? saved : "gemini";
+  });
+  const [grokModel, setGrokModel] = useState<string>(() => {
+    if (typeof window === "undefined") return "grok-build-0.1";
+    return window.localStorage.getItem("upload:grokModel") || "grok-build-0.1";
   });
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("upload:aiProvider", aiProvider);
     }
   }, [aiProvider]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("upload:grokModel", grokModel);
+    }
+  }, [grokModel]);
   const [batchProgress, setBatchProgress] = useState<{
     action: "extract" | "upload";
     current: number;
@@ -489,6 +500,8 @@ function UploadPage() {
   const [uploadStartedAt, setUploadStartedAt] = useState<Date | null>(null);
   const extractGeminiFn = useServerFn(extractFieldsWithGemini);
   const extractClaudeFn = useServerFn(extractFieldsWithClaude);
+  const extractGrokFn = useServerFn(extractFieldsWithGrok);
+
   const cancelExtractRef = useRef(false);
 
   const refreshAuthSessionIfNeeded = useCallback(async () => {
@@ -640,7 +653,7 @@ function UploadPage() {
     }
   }
 
-  async function handleAutoFillAll(provider: "gemini" | "claude") {
+  async function handleAutoFillAll(provider: "gemini" | "claude" | "grok") {
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
     if (fields.length === 0) return toast.error("Este tipo não tem campos de indexação");
 
@@ -661,8 +674,11 @@ function UploadPage() {
     }));
 
     const fieldsJson = JSON.stringify(fieldDefs);
-    const extractFn = provider === "claude" ? extractClaudeFn : extractGeminiFn;
-    const providerLabel = provider === "claude" ? "Claude" : "Gemini";
+    const extractFn =
+      provider === "claude" ? extractClaudeFn : provider === "grok" ? extractGrokFn : extractGeminiFn;
+    const providerLabel =
+      provider === "claude" ? "Claude" : provider === "grok" ? "Grok" : "Gemini";
+
 
     let ok = 0;
     let fail = 0;
@@ -688,6 +704,8 @@ function UploadPage() {
         form.append("fields", fieldsJson);
         if (companyId !== "none") form.append("companyId", companyId);
         if (docTypeId !== "none") form.append("documentTypeId", docTypeId);
+        if (provider === "grok") form.append("model", grokModel);
+
         const res = (await runExtractWithFreshAuth(extractFn, form)) as {
           values: Record<string, string>;
           usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; log_id?: string | null };
@@ -770,7 +788,7 @@ function UploadPage() {
 
 
 
-  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude") {
+  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude" | "grok") {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
@@ -778,8 +796,11 @@ function UploadPage() {
     if (isExtracting !== null || isUploading) return;
 
     const provider = providerOverride ?? item.aiProvider ?? "gemini";
-    const providerLabel = provider === "claude" ? "Claude" : "Gemini";
-    const extractFn = provider === "claude" ? extractClaudeFn : extractGeminiFn;
+    const providerLabel =
+      provider === "claude" ? "Claude" : provider === "grok" ? "Grok" : "Gemini";
+    const extractFn =
+      provider === "claude" ? extractClaudeFn : provider === "grok" ? extractGrokFn : extractGeminiFn;
+
 
     const fieldDefs = fields.map((f) => ({
       label: f.label,
@@ -808,6 +829,8 @@ function UploadPage() {
       form.append("fields", fieldsJson);
       if (companyId !== "none") form.append("companyId", companyId);
       if (docTypeId !== "none") form.append("documentTypeId", docTypeId);
+      if (provider === "grok") form.append("model", grokModel);
+
       const res = (await runExtractWithFreshAuth(extractFn, form)) as {
         values: Record<string, string>;
         usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; log_id?: string | null };
@@ -1385,7 +1408,7 @@ function UploadPage() {
                   size="sm"
                   value={aiProvider}
                   onValueChange={(v) => {
-                    if (v === "gemini" || v === "claude") setAiProvider(v);
+                    if (v === "gemini" || v === "claude" || v === "grok") setAiProvider(v);
                   }}
                   disabled={isExtracting !== null}
                   className="rounded-md border bg-background p-0.5"
@@ -1405,6 +1428,13 @@ function UploadPage() {
                   >
                     Claude
                   </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="grok"
+                    className="h-7 px-2 text-xs data-[state=on]:bg-gradient-to-r data-[state=on]:from-emerald-800 data-[state=on]:via-lime-700 data-[state=on]:to-green-600 data-[state=on]:text-white"
+                    title={`Usar xAI Grok (modelo: ${grokModel})`}
+                  >
+                    Grok
+                  </ToggleGroupItem>
                 </ToggleGroup>
                 <Button
                   size="sm"
@@ -1417,12 +1447,14 @@ function UploadPage() {
                     fields.length === 0 ||
                     !items.some((i) => i.status === "queued")
                   }
-                  title={`Lê a 1ª página de cada arquivo e preenche os campos via ${aiProvider === "claude" ? "Claude" : "Gemini"}`}
+                  title={`Lê a 1ª página de cada arquivo e preenche os campos via ${aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : "Gemini"}`}
                   className={cn(
                     "group relative overflow-hidden text-white border-0 shadow-md hover:-translate-y-0.5 transition-all duration-300",
                     aiProvider === "claude"
                       ? "bg-gradient-to-r from-orange-700 via-amber-700 to-rose-700 hover:from-orange-600 hover:via-amber-600 hover:to-rose-600 shadow-amber-700/30 hover:shadow-lg hover:shadow-amber-500/50"
-                      : "bg-gradient-to-r from-slate-800 via-blue-800 to-sky-700 hover:from-indigo-700 hover:via-blue-600 hover:to-cyan-500 shadow-blue-800/30 hover:shadow-lg hover:shadow-sky-500/50",
+                      : aiProvider === "grok"
+                        ? "bg-gradient-to-r from-emerald-800 via-lime-700 to-green-600 hover:from-emerald-700 hover:via-lime-600 hover:to-green-500 shadow-emerald-700/30 hover:shadow-lg hover:shadow-lime-500/50"
+                        : "bg-gradient-to-r from-slate-800 via-blue-800 to-sky-700 hover:from-indigo-700 hover:via-blue-600 hover:to-cyan-500 shadow-blue-800/30 hover:shadow-lg hover:shadow-sky-500/50",
                   )}
                 >
                   <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
@@ -1432,9 +1464,10 @@ function UploadPage() {
                     <Sparkles className="h-4 w-4 mr-1 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" />
                   )}
                   <span className="relative">
-                    Preencher com {aiProvider === "claude" ? "Claude" : "Gemini"}
+                    Preencher com {aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : "Gemini"}
                   </span>
                 </Button>
+
                 {isExtracting !== null && (
                   <Button
                     size="sm"
@@ -1513,7 +1546,7 @@ function UploadPage() {
                             className="h-7 shrink-0"
                             onClick={() => reprocessItem(item.id)}
                             disabled={isExtracting !== null || isUploading}
-                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : "Gemini"}`}
+                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : "Gemini"}`}
                           >
                             {isExtracting !== null && batchProgress?.itemId === item.id ? (
                               <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
@@ -1536,7 +1569,7 @@ function UploadPage() {
                             className="h-7 shrink-0"
                             onClick={() => reprocessItem(item.id)}
                             disabled={isExtracting !== null || isUploading}
-                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : "Gemini"}`}
+                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : "Gemini"}`}
                           >
                             {isExtracting !== null && batchProgress?.itemId === item.id ? (
                               <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
