@@ -1430,7 +1430,7 @@ function UploadPage() {
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="grok"
-                    className="h-7 px-2 text-xs data-[state=on]:bg-gradient-to-r data-[state=on]:from-emerald-800 data-[state=on]:via-lime-700 data-[state=on]:to-green-600 data-[state=on]:text-white"
+                    className="h-7 px-2 text-xs data-[state=on]:bg-gradient-to-r data-[state=on]:from-black data-[state=on]:via-neutral-800 data-[state=on]:to-neutral-600 data-[state=on]:text-white"
                     title={`Usar xAI Grok (modelo: ${grokModel})`}
                   >
                     Grok
