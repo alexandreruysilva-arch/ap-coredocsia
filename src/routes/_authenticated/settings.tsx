@@ -243,7 +243,7 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>Motor Gemini</Label>
                 <Select value={geminiModel} onValueChange={setGeminiModel}>
@@ -267,6 +267,18 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">Modelo atual: <code>{claudeModel}</code></p>
+              </div>
+              <div className="space-y-2">
+                <Label>Motor Grok</Label>
+                <Select value={grokModel} onValueChange={setGrokModel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {GROK_MODELS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Modelo atual: <code>{grokModel}</code></p>
               </div>
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
