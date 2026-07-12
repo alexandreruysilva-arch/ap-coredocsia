@@ -466,17 +466,26 @@ function UploadPage() {
   const [companyId, setCompanyId] = useState<string>("none");
   const [docTypeId, setDocTypeId] = useState<string>("none");
   const [isUploading, setIsUploading] = useState(false);
-  const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude">(null);
-  const [aiProvider, setAiProvider] = useState<"gemini" | "claude">(() => {
+  const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude" | "grok">(null);
+  const [aiProvider, setAiProvider] = useState<"gemini" | "claude" | "grok">(() => {
     if (typeof window === "undefined") return "gemini";
     const saved = window.localStorage.getItem("upload:aiProvider");
-    return saved === "claude" ? "claude" : "gemini";
+    return saved === "claude" || saved === "grok" ? saved : "gemini";
+  });
+  const [grokModel, setGrokModel] = useState<string>(() => {
+    if (typeof window === "undefined") return "grok-build-0.1";
+    return window.localStorage.getItem("upload:grokModel") || "grok-build-0.1";
   });
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("upload:aiProvider", aiProvider);
     }
   }, [aiProvider]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("upload:grokModel", grokModel);
+    }
+  }, [grokModel]);
   const [batchProgress, setBatchProgress] = useState<{
     action: "extract" | "upload";
     current: number;
@@ -489,6 +498,8 @@ function UploadPage() {
   const [uploadStartedAt, setUploadStartedAt] = useState<Date | null>(null);
   const extractGeminiFn = useServerFn(extractFieldsWithGemini);
   const extractClaudeFn = useServerFn(extractFieldsWithClaude);
+  const extractGrokFn = useServerFn(extractFieldsWithGrok);
+
   const cancelExtractRef = useRef(false);
 
   const refreshAuthSessionIfNeeded = useCallback(async () => {
