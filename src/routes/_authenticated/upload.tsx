@@ -786,7 +786,7 @@ function UploadPage() {
 
 
 
-  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude") {
+  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude" | "grok") {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
@@ -794,8 +794,11 @@ function UploadPage() {
     if (isExtracting !== null || isUploading) return;
 
     const provider = providerOverride ?? item.aiProvider ?? "gemini";
-    const providerLabel = provider === "claude" ? "Claude" : "Gemini";
-    const extractFn = provider === "claude" ? extractClaudeFn : extractGeminiFn;
+    const providerLabel =
+      provider === "claude" ? "Claude" : provider === "grok" ? "Grok" : "Gemini";
+    const extractFn =
+      provider === "claude" ? extractClaudeFn : provider === "grok" ? extractGrokFn : extractGeminiFn;
+
 
     const fieldDefs = fields.map((f) => ({
       label: f.label,
