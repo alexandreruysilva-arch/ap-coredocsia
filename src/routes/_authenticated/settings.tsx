@@ -197,6 +197,10 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
 
   const [geminiModel, setGeminiModel] = useState<string>("gemini-2.5-flash");
   const [claudeModel, setClaudeModel] = useState<string>("claude-haiku-4-5-20251001");
+  const [grokModel, setGrokModel] = useState<string>(() => {
+    if (typeof window === "undefined") return "grok-build-0.1";
+    return window.localStorage.getItem("upload:grokModel") || "grok-build-0.1";
+  });
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -214,6 +218,9 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
         .update({ ai_gemini_model: geminiModel, ai_claude_model: claudeModel })
         .eq("id", organizationId);
       if (error) throw error;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("upload:grokModel", grokModel);
+      }
       toast.success("Modelos de IA atualizados!");
       queryClient.invalidateQueries({ queryKey: ["org-ai-models", organizationId] });
     } catch (e: any) {
