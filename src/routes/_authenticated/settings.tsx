@@ -172,6 +172,13 @@ const CLAUDE_MODELS = [
   { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 — rápido (recomendado)" },
 ];
 
+const GROK_MODELS = [
+  { value: "grok-build-0.1", label: "Grok Build 0.1 — padrão" },
+  { value: "grok-2-vision-1212", label: "Grok 2 Vision — multimodal" },
+  { value: "grok-2-1212", label: "Grok 2 — texto" },
+  { value: "grok-beta", label: "Grok Beta" },
+];
+
 function AiModelsSettings({ organizationId }: { organizationId: string | undefined }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -190,6 +197,10 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
 
   const [geminiModel, setGeminiModel] = useState<string>("gemini-2.5-flash");
   const [claudeModel, setClaudeModel] = useState<string>("claude-haiku-4-5-20251001");
+  const [grokModel, setGrokModel] = useState<string>(() => {
+    if (typeof window === "undefined") return "grok-build-0.1";
+    return window.localStorage.getItem("upload:grokModel") || "grok-build-0.1";
+  });
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -207,6 +218,9 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
         .update({ ai_gemini_model: geminiModel, ai_claude_model: claudeModel })
         .eq("id", organizationId);
       if (error) throw error;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("upload:grokModel", grokModel);
+      }
       toast.success("Modelos de IA atualizados!");
       queryClient.invalidateQueries({ queryKey: ["org-ai-models", organizationId] });
     } catch (e: any) {
@@ -229,7 +243,7 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>Motor Gemini</Label>
                 <Select value={geminiModel} onValueChange={setGeminiModel}>
@@ -253,6 +267,18 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">Modelo atual: <code>{claudeModel}</code></p>
+              </div>
+              <div className="space-y-2">
+                <Label>Motor Grok</Label>
+                <Select value={grokModel} onValueChange={setGrokModel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {GROK_MODELS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Modelo atual: <code>{grokModel}</code></p>
               </div>
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
