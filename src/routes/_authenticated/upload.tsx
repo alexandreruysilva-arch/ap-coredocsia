@@ -133,7 +133,7 @@ interface QueueItem {
   aiUsage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; log_id?: string | null } | null;
   aiOriginalValues?: Record<string, string>;
   aiStatus?: "success" | "failed" | "incomplete";
-  aiProvider?: "gemini" | "claude";
+  aiProvider?: "gemini" | "claude" | "grok";
   aiMessage?: string;
   expanded: boolean;
 }
