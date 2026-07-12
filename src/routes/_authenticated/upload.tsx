@@ -1453,7 +1453,7 @@ function UploadPage() {
                     aiProvider === "claude"
                       ? "bg-gradient-to-r from-orange-700 via-amber-700 to-rose-700 hover:from-orange-600 hover:via-amber-600 hover:to-rose-600 shadow-amber-700/30 hover:shadow-lg hover:shadow-amber-500/50"
                       : aiProvider === "grok"
-                        ? "bg-gradient-to-r from-emerald-800 via-lime-700 to-green-600 hover:from-emerald-700 hover:via-lime-600 hover:to-green-500 shadow-emerald-700/30 hover:shadow-lg hover:shadow-lime-500/50"
+                        ? "bg-gradient-to-r from-black via-neutral-800 to-neutral-600 hover:from-neutral-900 hover:via-neutral-700 hover:to-neutral-500 shadow-black/40 hover:shadow-lg hover:shadow-neutral-700/50 text-white"
                         : "bg-gradient-to-r from-slate-800 via-blue-800 to-sky-700 hover:from-indigo-700 hover:via-blue-600 hover:to-cyan-500 shadow-blue-800/30 hover:shadow-lg hover:shadow-sky-500/50",
                   )}
                 >
