@@ -1460,7 +1460,33 @@ function UploadPage() {
                     Grok
                   </ToggleGroupItem>
                 </ToggleGroup>
-                <Button
+                <div
+                  className="flex items-center gap-1.5 rounded-md border bg-background px-2 h-8"
+                  title="Número de páginas iniciais que a IA irá ler para extrair os dados"
+                >
+                  <Label htmlFor="upload-max-pages" className="text-xs text-muted-foreground m-0">
+                    Páginas
+                  </Label>
+                  <Select
+                    value={String(maxPages)}
+                    onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
+                    disabled={isExtracting !== null}
+                  >
+                    <SelectTrigger
+                      id="upload-max-pages"
+                      className="h-7 w-[68px] text-xs border-0 shadow-none px-1.5 focus:ring-0"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 7, 10].map((n) => (
+                        <SelectItem key={n} value={String(n)} className="text-xs">
+                          {n === 1 ? "1 (padrão)" : `${n} páginas`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                   size="sm"
                   variant="outline"
                   onClick={() => handleAutoFillAll(aiProvider)}
