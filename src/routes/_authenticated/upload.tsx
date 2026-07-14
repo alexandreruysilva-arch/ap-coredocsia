@@ -1487,6 +1487,7 @@ function UploadPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleAutoFillAll(aiProvider)}
