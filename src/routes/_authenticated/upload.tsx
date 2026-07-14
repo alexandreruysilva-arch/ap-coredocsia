@@ -1461,10 +1461,10 @@ function UploadPage() {
                   </ToggleGroupItem>
                 </ToggleGroup>
                 <div
-                  className="flex items-center gap-1.5 rounded-md border bg-background px-2 h-8"
+                  className="flex items-center gap-2 rounded-md border bg-background px-3 h-10"
                   title="Número de páginas iniciais que a IA irá ler para extrair os dados"
                 >
-                  <Label htmlFor="upload-max-pages" className="text-xs text-muted-foreground m-0">
+                  <Label htmlFor="upload-max-pages" className="text-sm text-muted-foreground m-0">
                     Páginas
                   </Label>
                   <Select
@@ -1474,13 +1474,13 @@ function UploadPage() {
                   >
                     <SelectTrigger
                       id="upload-max-pages"
-                      className="h-7 w-[68px] text-xs border-0 shadow-none px-1.5 focus:ring-0"
+                      className="h-9 w-[130px] text-sm border-0 shadow-none px-2 focus:ring-0"
                     >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5, 7, 10].map((n) => (
-                        <SelectItem key={n} value={String(n)} className="text-xs">
+                        <SelectItem key={n} value={String(n)} className="text-sm">
                           {n === 1 ? "1 (padrão)" : `${n} páginas`}
                         </SelectItem>
                       ))}
