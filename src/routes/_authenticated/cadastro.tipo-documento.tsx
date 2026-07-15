@@ -38,6 +38,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileBundle } from "@/hooks/use-profile";
 import {
@@ -95,6 +105,8 @@ function TipoDocumentoPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DocTypeRow | null>(null);
   const [form, setForm] = useState<FormVals>(emptyForm);
+  const [toDelete, setToDelete] = useState<DocTypeRow | null>(null);
+
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
   const [fieldsFor, setFieldsFor] = useState<DocTypeRow | null>(null);
   const [cloneSource, setCloneSource] = useState<DocTypeRow | null>(null);
@@ -415,9 +427,8 @@ function TipoDocumentoPage() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => {
-                          if (confirm(`Remover "${r.name}"?`)) remove.mutate(r.id);
-                        }}
+                        onClick={() => setToDelete(r)}
+
                         aria-label="Remover"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -574,7 +585,50 @@ function TipoDocumentoPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir tipo de documento</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Tem certeza que deseja excluir o tipo{" "}
+                  <span className="font-semibold text-foreground">
+                    &quot;{toDelete?.name}&quot;
+                  </span>
+                  ?
+                </p>
+                <p className="text-destructive font-medium">
+                  Esta ação é permanente e não pode ser desfeita.
+                </p>
+                <p>
+                  Todos os campos de indexação, listas de valores e configurações
+                  associadas a este tipo serão removidos. Documentos já enviados
+                  vinculados a este tipo poderão ficar inacessíveis para
+                  consulta e edição.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (toDelete) {
+                  remove.mutate(toDelete.id);
+                  setToDelete(null);
+                }
+              }}
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 
