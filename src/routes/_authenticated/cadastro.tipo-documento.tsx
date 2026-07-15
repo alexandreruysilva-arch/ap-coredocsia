@@ -105,6 +105,8 @@ function TipoDocumentoPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DocTypeRow | null>(null);
   const [form, setForm] = useState<FormVals>(emptyForm);
+  const [toDelete, setToDelete] = useState<DocTypeRow | null>(null);
+
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
   const [fieldsFor, setFieldsFor] = useState<DocTypeRow | null>(null);
   const [cloneSource, setCloneSource] = useState<DocTypeRow | null>(null);
