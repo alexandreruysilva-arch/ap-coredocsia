@@ -89,6 +89,7 @@ function EmpresaPage() {
   const [editing, setEditing] = useState<CompanyRow | null>(null);
   const [form, setForm] = useState<CompanyForm>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof CompanyForm, string>>>({});
+  const [toDelete, setToDelete] = useState<CompanyRow | null>(null);
 
   const list = useQuery({
     queryKey: ["companies", effectiveOrgId],
