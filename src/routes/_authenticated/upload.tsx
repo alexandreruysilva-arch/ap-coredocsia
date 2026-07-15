@@ -736,7 +736,7 @@ function UploadPage() {
       try {
         const form = new FormData();
         const isPdf = item.file.type === "application/pdf";
-        const shouldRasterize = isPdf && (provider === "grok" || maxPages > 1);
+        const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages > 1);
         const fileForAi = shouldRasterize
           ? await pdfPagesToJpeg(item.file, { maxPages })
           : await compressImageIfNeeded(item.file);
@@ -746,6 +746,7 @@ function UploadPage() {
         if (companyId !== "none") form.append("companyId", companyId);
         if (docTypeId !== "none") form.append("documentTypeId", docTypeId);
         if (provider === "grok") form.append("model", grokModel);
+        if (provider === "openai") form.append("model", openaiModel);
 
         const res = (await runExtractWithFreshAuth(extractFn, form)) as {
           values: Record<string, string>;
@@ -829,7 +830,7 @@ function UploadPage() {
 
 
 
-  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude" | "grok") {
+  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude" | "grok" | "openai") {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
@@ -838,9 +839,21 @@ function UploadPage() {
 
     const provider = providerOverride ?? item.aiProvider ?? "gemini";
     const providerLabel =
-      provider === "claude" ? "Claude" : provider === "grok" ? "Grok" : "Gemini";
+      provider === "claude"
+        ? "Claude"
+        : provider === "grok"
+          ? "Grok"
+          : provider === "openai"
+            ? "OpenAI"
+            : "Gemini";
     const extractFn =
-      provider === "claude" ? extractClaudeFn : provider === "grok" ? extractGrokFn : extractGeminiFn;
+      provider === "claude"
+        ? extractClaudeFn
+        : provider === "grok"
+          ? extractGrokFn
+          : provider === "openai"
+            ? extractOpenAIFn
+            : extractGeminiFn;
 
 
     const fieldDefs = fields.map((f) => ({
