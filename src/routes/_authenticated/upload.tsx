@@ -880,7 +880,7 @@ function UploadPage() {
     try {
       const form = new FormData();
       const isPdf = item.file.type === "application/pdf";
-      const shouldRasterize = isPdf && (provider === "grok" || maxPages > 1);
+      const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages > 1);
       const fileForAi = shouldRasterize
         ? await pdfPagesToJpeg(item.file, { maxPages })
         : await compressImageIfNeeded(item.file);
@@ -890,6 +890,7 @@ function UploadPage() {
       if (companyId !== "none") form.append("companyId", companyId);
       if (docTypeId !== "none") form.append("documentTypeId", docTypeId);
       if (provider === "grok") form.append("model", grokModel);
+      if (provider === "openai") form.append("model", openaiModel);
 
       const res = (await runExtractWithFreshAuth(extractFn, form)) as {
         values: Record<string, string>;
