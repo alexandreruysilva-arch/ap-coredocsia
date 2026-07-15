@@ -398,6 +398,47 @@ function EmpresaPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir empresa</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Tem certeza que deseja excluir a empresa{" "}
+                  <span className="font-semibold text-foreground">
+                    &quot;{toDelete?.name}&quot;
+                  </span>
+                  ?
+                </p>
+                <p className="text-destructive font-medium">
+                  Esta ação é permanente e não pode ser desfeita.
+                </p>
+                <p>
+                  Todos os tipos de documento, campos de indexação e documentos
+                  já enviados vinculados a esta empresa poderão ficar
+                  inacessíveis para consulta e edição.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (toDelete) {
+                  remove.mutate(toDelete.id);
+                  setToDelete(null);
+                }
+              }}
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
