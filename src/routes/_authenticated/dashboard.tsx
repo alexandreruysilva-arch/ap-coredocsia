@@ -59,15 +59,16 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select("*")
+        .select("id,name,status,created_at")
         .eq("org_id", orgId!)
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(8);
       if (error) throw error;
-      return (data ?? []) as DocumentRow[];
+      return (data ?? []) as unknown as DocumentRow[];
     },
   });
+
 
   // Agregações: chamada única a uma RPC agregada no Postgres.
   // Fallback: se a RPC ainda não foi aplicada no banco, calcula no cliente.
