@@ -139,9 +139,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="h-8 w-8 rounded-md bg-sidebar-primary grid place-items-center shrink-0">
                 <FileScan className="h-4 w-4 text-sidebar-primary-foreground" />
               </div>
-              <span className="font-display font-bold text-base group-data-[collapsible=icon]:hidden">
-                AP - CoreDocs IA
-              </span>
+              <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="font-display font-bold text-base">
+                  AP - CoreDocs IA
+                </span>
+                <span className="text-[10px] font-medium tracking-[0.12em] text-sidebar-foreground/60 uppercase">
+                  Plataforma IA V.01.02
+                </span>
+              </div>
             </Link>
           </SidebarHeader>
 
