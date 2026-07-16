@@ -11,16 +11,16 @@ interface FieldDef {
 }
 
 
-const DEFAULT_MODEL = "google/gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 
-/** Normaliza nomes de modelo antigos (ex.: "gemini-2.5-flash") para o formato
- *  provider/model exigido pelo Lovable AI Gateway. */
+/** Remove prefixo de gateway (ex.: "google/gemini-2.5-flash" -> "gemini-2.5-flash")
+ *  para chamada direta na Google Generative Language API. */
 function normalizeModel(name: string): string {
   if (!name) return DEFAULT_MODEL;
-  if (name.includes("/")) return name;
-  if (name.startsWith("gemini")) return `google/${name}`;
-  return name;
+  const stripped = name.includes("/") ? name.split("/").pop()! : name;
+  return stripped || DEFAULT_MODEL;
 }
+
 
 /**
  * Extrai valores de indexação da PRIMEIRA PÁGINA de um documento (PDF/imagem)
