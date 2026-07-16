@@ -173,6 +173,8 @@ function AuditPage() {
   const [docTypeFilter, setDocTypeFilter] = useState<string>("__all__");
   const [page, setPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<AiLogRow | null>(null);
+
   const PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
