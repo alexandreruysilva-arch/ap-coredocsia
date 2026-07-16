@@ -64,6 +64,14 @@ export const extractFieldsWithOpenAI = createServerFn({ method: "POST" })
     const documentTypeName = (typeRes?.data as { name?: string } | null)?.name ?? null;
 
     let MODEL = DEFAULT_MODEL;
+    if (orgId) {
+      const { data: orgModel } = await supabase
+        .from("organizations")
+        .select("ai_openai_model")
+        .eq("id", orgId)
+        .maybeSingle();
+      if (orgModel?.ai_openai_model) MODEL = orgModel.ai_openai_model;
+    }
     const overrideModel = (data.get("model") as string) || null;
     if (overrideModel) MODEL = overrideModel;
 

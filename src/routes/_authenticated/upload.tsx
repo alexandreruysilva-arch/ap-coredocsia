@@ -62,7 +62,7 @@ import {
   uploadDocument,
   validateFile,
 } from "@/lib/documents";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 function charDiff(a: string, b: string): number {
@@ -476,14 +476,26 @@ function UploadPage() {
     const saved = window.localStorage.getItem("upload:aiProvider");
     return saved === "claude" || saved === "grok" || saved === "openai" ? saved : "gemini";
   });
-  const [grokModel, setGrokModel] = useState<string>(() => {
-    if (typeof window === "undefined") return "grok-build-0.1";
-    return window.localStorage.getItem("upload:grokModel") || "grok-build-0.1";
+  const [grokModel, setGrokModel] = useState<string>("grok-build-0.1");
+  const [openaiModel, setOpenaiModel] = useState<string>("gpt-5.4-mini");
+  const { data: orgAiModels } = useQuery({
+    queryKey: ["org-ai-models", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("ai_grok_model, ai_openai_model")
+        .eq("id", orgId as string)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
   });
-  const [openaiModel, setOpenaiModel] = useState<string>(() => {
-    if (typeof window === "undefined") return "gpt-5.4-mini";
-    return window.localStorage.getItem("upload:openaiModel") || "gpt-5.4-mini";
-  });
+  useEffect(() => {
+    if (!orgAiModels) return;
+    if (orgAiModels.ai_grok_model) setGrokModel(orgAiModels.ai_grok_model);
+    if (orgAiModels.ai_openai_model) setOpenaiModel(orgAiModels.ai_openai_model);
+  }, [orgAiModels]);
   const [maxPages, setMaxPages] = useState<number>(() => {
     if (typeof window === "undefined") return 1;
     const raw = window.localStorage.getItem("upload:maxPages");
@@ -495,16 +507,6 @@ function UploadPage() {
       window.localStorage.setItem("upload:aiProvider", aiProvider);
     }
   }, [aiProvider]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("upload:grokModel", grokModel);
-    }
-  }, [grokModel]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("upload:openaiModel", openaiModel);
-    }
-  }, [openaiModel]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("upload:maxPages", String(maxPages));

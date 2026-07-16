@@ -64,6 +64,14 @@ export const extractFieldsWithGrok = createServerFn({ method: "POST" })
     const documentTypeName = (typeRes?.data as { name?: string } | null)?.name ?? null;
 
     let MODEL = DEFAULT_MODEL;
+    if (orgId) {
+      const { data: orgModel } = await supabase
+        .from("organizations")
+        .select("ai_grok_model")
+        .eq("id", orgId)
+        .maybeSingle();
+      if (orgModel?.ai_grok_model) MODEL = orgModel.ai_grok_model;
+    }
     const overrideModel = (data.get("model") as string) || null;
     if (overrideModel) MODEL = overrideModel;
 

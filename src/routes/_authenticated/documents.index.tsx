@@ -92,7 +92,7 @@ function DocumentsPage() {
   const orgId = profile?.currentOrg?.id ?? null;
   const { data: allTypes = [] } = useDocumentTypes(orgId);
   const { data: companies = [] } = useCompanies(orgId);
-  const { data: allowedTypeIds = null } = useAllowedDocumentTypeIds();
+  const { data: allowedTypeIds = null, isLoading: allowedTypeIdsLoading } = useAllowedDocumentTypeIds();
 
   const FILTERS_KEY = "documents:filters:v1";
 
@@ -167,6 +167,7 @@ function DocumentsPage() {
     typeId,
     search: search.length >= 2 ? search : "",
     allowedTypeIds,
+    allowedTypesReady: !allowedTypeIdsLoading,
   });
 
   const activeFieldFilters = Object.entries(fieldFilters).filter(
@@ -512,7 +513,13 @@ function DocumentsPage() {
             const m = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
             if (m) val = `${m[3]}-${m[2]}-${m[1]}`;
           } else if (f.field_type === "number") {
-            const n = Number(String(val).replace(",", "."));
+            let s = String(val).trim();
+            if (s.includes(",") && s.includes(".")) {
+              s = s.replace(/\./g, "").replace(",", ".");
+            } else if (s.includes(",")) {
+              s = s.replace(",", ".");
+            }
+            const n = Number(s);
             if (!Number.isNaN(n)) val = n;
           } else if (f.field_type === "boolean") {
             val = String(val).toLowerCase().startsWith("s") || val === true;

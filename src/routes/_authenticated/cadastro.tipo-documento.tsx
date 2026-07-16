@@ -245,15 +245,11 @@ function TipoDocumentoPage() {
       }
 
       // Cria tabela física e colunas
-      try {
-        await createDocTypeTable({ data: { typeId: newId } });
-        for (const f of srcFields ?? []) {
-          await addDocTypeColumn({
-            data: { typeId: newId, fieldKey: f.field_key, fieldType: f.field_type },
-          });
-        }
-      } catch (e) {
-        console.error("Falha ao criar tabela física do tipo duplicado", e);
+      await createDocTypeTable({ data: { typeId: newId } });
+      for (const f of srcFields ?? []) {
+        await addDocTypeColumn({
+          data: { typeId: newId, fieldKey: f.field_key, fieldType: f.field_type },
+        });
       }
     },
     onSuccess: () => {

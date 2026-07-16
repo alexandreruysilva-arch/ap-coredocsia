@@ -32,6 +32,21 @@ async function resolveOrgId(supabase: any, userId: string): Promise<string> {
   return data.current_org_id;
 }
 
+/** Lists every Supabase Auth user, paging through the admin API instead of relying on a single page. */
+async function listAllAuthUsers(supabaseAdmin: any) {
+  const perPage = 200;
+  let page = 1;
+  const all: Array<{ id: string; email?: string | null; banned_until?: string | null }> = [];
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) throw new Error(error.message);
+    all.push(...data.users);
+    if (data.users.length < perPage) break;
+    page++;
+  }
+  return all;
+}
+
 /** Creates (or reuses) a user and grants access. */
 export const inviteUserAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -50,9 +65,8 @@ export const inviteUserAccess = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let targetUserId: string | null = null;
-    const list = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    if (list.error) throw new Error(list.error.message);
-    const found = list.data.users.find(
+    const allUsers = await listAllAuthUsers(supabaseAdmin);
+    const found = allUsers.find(
       (u) => u.email?.toLowerCase() === data.email.toLowerCase(),
     );
     if (found) {
@@ -198,17 +212,15 @@ export const listOrgUserAccess = createServerFn({ method: "GET" })
       );
 
       // Augment with auth emails + suspension status.
-      const list = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-      if (!list.error) {
-        list.data.users.forEach((u) => {
-          if (userIds.includes(u.id)) {
-            const cur = profilesById.get(u.id) ?? { fullName: "—", email: null, suspended: false };
-            const banned = (u as any).banned_until;
-            const isSuspended = !!banned && new Date(banned).getTime() > Date.now();
-            profilesById.set(u.id, { ...cur, email: u.email ?? null, suspended: isSuspended });
-          }
-        });
-      }
+      const allUsers = await listAllAuthUsers(supabaseAdmin);
+      allUsers.forEach((u) => {
+        if (userIds.includes(u.id)) {
+          const cur = profilesById.get(u.id) ?? { fullName: "—", email: null, suspended: false };
+          const banned = u.banned_until;
+          const isSuspended = !!banned && new Date(banned).getTime() > Date.now();
+          profilesById.set(u.id, { ...cur, email: u.email ?? null, suspended: isSuspended });
+        }
+      });
     }
 
     // Fetch roles per user for this org.
@@ -328,12 +340,11 @@ export const listSuspendedUserIds = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.userIds.length === 0) return { suspended: [] as string[] };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const list = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    if (list.error) throw new Error(list.error.message);
+    const allUsers = await listAllAuthUsers(supabaseAdmin);
     const set = new Set(data.userIds);
-    const suspended = list.data.users
-      .filter((u) => set.has(u.id) && (u as any).banned_until)
-      .filter((u) => new Date((u as any).banned_until).getTime() > Date.now())
+    const suspended = allUsers
+      .filter((u) => set.has(u.id) && u.banned_until)
+      .filter((u) => new Date(u.banned_until!).getTime() > Date.now())
       .map((u) => u.id);
     return { suspended };
   });

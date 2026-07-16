@@ -10,6 +10,8 @@ export interface ListDocumentsParams {
   search?: string;
   includeDeleted?: boolean;
   allowedTypeIds?: string[] | null;
+  /** Set to false while the allowed-types permission check is still loading, to avoid a flash of unrestricted data. */
+  allowedTypesReady?: boolean;
 }
 
 export function useDocumentsList(params: ListDocumentsParams) {
@@ -21,11 +23,12 @@ export function useDocumentsList(params: ListDocumentsParams) {
     search = "",
     includeDeleted = false,
     allowedTypeIds = null,
+    allowedTypesReady = true,
   } = params;
 
   const query = useQuery({
     queryKey: ["documents", orgId, status, typeId, search, includeDeleted, allowedTypeIds],
-    enabled: !!orgId,
+    enabled: !!orgId && allowedTypesReady,
     queryFn: async (): Promise<DocumentRow[]> => {
       if (allowedTypeIds && allowedTypeIds.length === 0) return [];
 
@@ -34,7 +37,8 @@ export function useDocumentsList(params: ListDocumentsParams) {
           .from("documents")
           .select("*")
           .eq("org_id", orgId!)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false });
 
         if (!includeDeleted) q = q.is("deleted_at", null);
         if (status !== "all") q = q.eq("status", status);
@@ -46,19 +50,25 @@ export function useDocumentsList(params: ListDocumentsParams) {
         return q;
       };
 
-      // Pagina via cursor em created_at para contornar o teto de max-rows do PostgREST
+      // Pagina via cursor composto (created_at, id) para contornar o teto de
+      // max-rows do PostgREST sem perder linhas com created_at idêntico.
       const PAGE = 1000;
       const all: DocumentRow[] = [];
-      let cursor: string | null = null;
+      let cursor: { createdAt: string; id: string } | null = null;
       while (true) {
         let q = buildQuery().limit(PAGE);
-        if (cursor) q = q.lt("created_at", cursor);
+        if (cursor) {
+          q = q.or(
+            `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
+          );
+        }
         const { data, error } = await q;
         if (error) throw error;
         const rows = data ?? [];
         all.push(...rows);
         if (rows.length < PAGE) break;
-        cursor = rows[rows.length - 1].created_at as string;
+        const last = rows[rows.length - 1];
+        cursor = { createdAt: last.created_at as string, id: last.id as string };
       }
       return all;
     },

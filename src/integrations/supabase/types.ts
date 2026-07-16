@@ -700,6 +700,8 @@ export type Database = {
           ai_claude_model: string
           ai_cost_per_file: number
           ai_gemini_model: string
+          ai_grok_model: string
+          ai_openai_model: string
           ai_price_base_threshold: number
           ai_price_tier_increment: number
           ai_price_tier_step: number
@@ -714,6 +716,8 @@ export type Database = {
           ai_claude_model?: string
           ai_cost_per_file?: number
           ai_gemini_model?: string
+          ai_grok_model?: string
+          ai_openai_model?: string
           ai_price_base_threshold?: number
           ai_price_tier_increment?: number
           ai_price_tier_step?: number
@@ -728,6 +732,8 @@ export type Database = {
           ai_claude_model?: string
           ai_cost_per_file?: number
           ai_gemini_model?: string
+          ai_grok_model?: string
+          ai_openai_model?: string
           ai_price_base_threshold?: number
           ai_price_tier_increment?: number
           ai_price_tier_step?: number

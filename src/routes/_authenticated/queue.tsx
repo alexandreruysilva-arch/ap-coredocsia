@@ -105,6 +105,28 @@ function QueuePage() {
     },
   });
 
+  const { data: countDocs = [] } = useQuery({
+    queryKey: ["queue-counts", orgId],
+    enabled: !!orgId,
+    queryFn: async (): Promise<Pick<QueueDoc, "status" | "ai_usage_logs">[]> => {
+      const PAGE = 1000;
+      const all: Pick<QueueDoc, "status" | "ai_usage_logs">[] = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("documents")
+          .select("status, ai_usage_logs(id)")
+          .eq("org_id", orgId!)
+          .is("deleted_at", null)
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        const rows = (data ?? []) as Pick<QueueDoc, "status" | "ai_usage_logs">[];
+        all.push(...rows);
+        if (rows.length < PAGE) break;
+      }
+      return all;
+    },
+  });
+
   useEffect(() => {
     if (!orgId) return;
     const channel = supabase
@@ -114,6 +136,7 @@ function QueuePage() {
         { event: "*", schema: "public", table: "documents", filter: `org_id=eq.${orgId}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ["queue-documents"] });
+          queryClient.invalidateQueries({ queryKey: ["queue-counts"] });
         },
       )
       .subscribe();
@@ -141,7 +164,7 @@ function QueuePage() {
       processed_manual: 0,
       failed: 0,
     };
-    docs.forEach((d) => {
+    countDocs.forEach((d) => {
       if (d.status === "processed") {
         const hasAi = (d.ai_usage_logs?.length ?? 0) > 0;
         if (hasAi) c.processed_ai++;
@@ -151,7 +174,7 @@ function QueuePage() {
       }
     });
     return c;
-  }, [docs]);
+  }, [countDocs]);
 
   async function reprocess(id: string) {
     const { error } = await supabase
@@ -161,6 +184,7 @@ function QueuePage() {
     if (error) toast.error(error.message);
     else toast.success("Reprocessamento agendado");
     queryClient.invalidateQueries({ queryKey: ["queue-documents"] });
+    queryClient.invalidateQueries({ queryKey: ["queue-counts"] });
   }
 
   async function remove(id: string) {
@@ -172,6 +196,7 @@ function QueuePage() {
     if (error) toast.error(error.message);
     else toast.success("Documento removido");
     queryClient.invalidateQueries({ queryKey: ["queue-documents"] });
+    queryClient.invalidateQueries({ queryKey: ["queue-counts"] });
   }
 
   const statCards = [

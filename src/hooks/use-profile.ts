@@ -45,10 +45,11 @@ export function useProfileBundle() {
         avatar_url: null,
         current_org_id: null,
       };
-      const organizations: Organization[] =
+      const organizations: Organization[] = (
         (membersRes.data ?? [])
           .map((m: any) => m.organizations)
-          .filter(Boolean) as Organization[];
+          .filter(Boolean) as Organization[]
+      ).sort((a, b) => a.name.localeCompare(b.name));
 
       const currentOrg =
         organizations.find((o) => o.id === profile.current_org_id) ??

@@ -266,7 +266,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <header className="h-14 border-b border-border bg-card/60 backdrop-blur-md supports-[backdrop-filter]:bg-card/50 flex items-center gap-3 px-4 sticky top-0 z-20">
             <SidebarTrigger />
             <div className="flex-1" />
-            
+
+            {data && data.organizations.length > 1 && <OrgSwitcher />}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2 px-2">
