@@ -88,9 +88,9 @@ interface AuditStats {
     accuracy_sum: number;
     accuracy_count: number;
   };
-  byCompany: Array<{ name: string; files: number; tokens: number; cost: number }>;
-  companies: string[];
-  docTypes: string[];
+  byCompany: Array<{ id: string | null; name: string; files: number; tokens: number; cost: number }>;
+  companies: Array<{ id: string; name: string }>;
+  docTypes: Array<{ id: string; name: string }>;
 }
 
 function formatDateTime(iso: string) {
@@ -194,8 +194,8 @@ function AuditPage() {
         args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: unknown }>)("get_audit_stats", {
         _org_id: orgId!,
-        _company: companyParam,
-        _doc_type: docTypeParam,
+        _company_id: companyParam,
+        _doc_type_id: docTypeParam,
       });
       if (error) throw error;
       return data as AuditStats;
@@ -214,8 +214,8 @@ function AuditPage() {
         .from("ai_usage_logs")
         .select(DETAIL_COLS, { count: "exact" })
         .eq("org_id", orgId!)
-        .eq("company_name", companyParam!)
-        .eq("document_type_name", docTypeParam!)
+        .eq("company_id", companyParam!)
+        .eq("document_type_id", docTypeParam!)
         .order("created_at", { ascending: false });
 
       const term = search.trim();
@@ -234,7 +234,7 @@ function AuditPage() {
   }, [search, companyFilter, docTypeFilter]);
 
   useEffect(() => {
-    if (docTypeParam && stats && !stats.docTypes.includes(docTypeParam)) {
+    if (docTypeParam && stats && !stats.docTypes.some((t) => t.id === docTypeParam)) {
       setDocTypeFilter("__all__");
     }
   }, [stats, docTypeParam]);
@@ -281,8 +281,8 @@ function AuditPage() {
           .from("ai_usage_logs")
           .select(DETAIL_COLS)
           .eq("org_id", orgId)
-          .eq("company_name", companyParam!)
-          .eq("document_type_name", docTypeParam!)
+          .eq("company_id", companyParam!)
+          .eq("document_type_id", docTypeParam!)
           .order("created_at", { ascending: false })
           .range(from, from + PAGE - 1);
         const term = search.trim();
@@ -406,7 +406,7 @@ function AuditPage() {
               </TableHeader>
               <TableBody>
                 {byCompany.map((v) => (
-                  <TableRow key={v.name}>
+                  <TableRow key={v.id ?? v.name}>
                     <TableCell className="font-medium">{v.name}</TableCell>
                     <TableCell className="text-right">{v.files}</TableCell>
                     <TableCell className="text-right tabular-nums font-medium">
@@ -434,7 +434,7 @@ function AuditPage() {
               <SelectContent>
                 <SelectItem value="__all__">Todas as empresas</SelectItem>
                 {companyOptions.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -445,7 +445,7 @@ function AuditPage() {
               <SelectContent>
                 <SelectItem value="__all__">Todos os tipos</SelectItem>
                 {docTypeOptions.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
