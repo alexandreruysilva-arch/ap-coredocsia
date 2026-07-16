@@ -176,14 +176,18 @@ function AuditPage() {
     staleTime: 60_000,
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<AuditStats> => {
-      const { data, error } = await supabase.rpc("get_audit_stats", {
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: unknown }>)("get_audit_stats", {
         _org_id: orgId!,
         _company: companyParam,
         _doc_type: docTypeParam,
       });
       if (error) throw error;
-      return data as unknown as AuditStats;
+      return data as AuditStats;
     },
+
   });
 
   // Detalhes paginados server-side, apenas quando empresa + tipo estão selecionados.
