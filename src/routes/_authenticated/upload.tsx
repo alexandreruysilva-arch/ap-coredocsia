@@ -1586,22 +1586,23 @@ function UploadPage() {
                     <FileText className="h-3 w-3" />
                     Páginas lidas
                   </Label>
-                  <Select
-                    value={String(maxPages)}
-                    onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
-                    disabled={isExtracting !== null}
-                  >
-                    <SelectTrigger className="h-9 w-[130px] bg-background shadow-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 5, 10].map((n) => (
-                        <SelectItem key={n} value={String(n)}>
-                          {n === 1 ? "1 página (padrão)" : `${n} páginas`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={String(maxPages)}
+                      onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
+                      disabled={isExtracting !== null}
+                    >
+                      <SelectTrigger className="h-9 w-[160px] bg-background shadow-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Todas as páginas</SelectItem>
+                        {[1, 2, 3, 5, 10].map((n) => (
+                          <SelectItem key={n} value={String(n)}>
+                            {n === 1 ? "1 página (padrão)" : `${n} páginas`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Área do documento */}
