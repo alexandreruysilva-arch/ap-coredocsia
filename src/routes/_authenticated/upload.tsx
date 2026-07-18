@@ -550,7 +550,7 @@ function UploadPage() {
     if (typeof window === "undefined") return 1;
     const raw = window.localStorage.getItem("upload:maxPages");
     const n = raw ? parseInt(raw, 10) : 1;
-    return Number.isFinite(n) && n >= 1 && n <= 10 ? n : 1;
+    return Number.isFinite(n) && n >= 0 && n <= 10 ? n : 1;
   });
   const [cropMode, setCropMode] = useState<CropMode>(() => {
     if (typeof window === "undefined") return "none";
