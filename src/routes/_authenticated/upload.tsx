@@ -503,6 +503,11 @@ function UploadPage() {
     const n = raw ? parseInt(raw, 10) : 1;
     return Number.isFinite(n) && n >= 1 && n <= 10 ? n : 1;
   });
+  const [cropMode, setCropMode] = useState<CropMode>(() => {
+    if (typeof window === "undefined") return "none";
+    const saved = window.localStorage.getItem("upload:cropMode");
+    return saved === "top" || saved === "bottom" ? saved : "none";
+  });
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("upload:aiProvider", aiProvider);
@@ -513,6 +518,11 @@ function UploadPage() {
       window.localStorage.setItem("upload:maxPages", String(maxPages));
     }
   }, [maxPages]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("upload:cropMode", cropMode);
+    }
+  }, [cropMode]);
   const [batchProgress, setBatchProgress] = useState<{
     action: "extract" | "upload";
     current: number;
