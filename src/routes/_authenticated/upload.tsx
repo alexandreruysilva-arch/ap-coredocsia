@@ -1580,6 +1580,7 @@ function UploadPage() {
                       Base 50%
                     </ToggleGroupItem>
                   </ToggleGroup>
+                  <CropPreviewThumb mode={cropMode} />
                 </div>
 
 
