@@ -943,7 +943,7 @@ function UploadPage() {
     try {
       const form = new FormData();
       const isPdf = item.file.type === "application/pdf";
-      const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages > 1);
+      const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages === 0 || maxPages > 1);
       const rasterOrCompressed = shouldRasterize
         ? await pdfPagesToJpeg(item.file, { maxPages })
         : await compressImageIfNeeded(item.file);
