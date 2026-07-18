@@ -1545,6 +1545,43 @@ function UploadPage() {
                     ))}
                   </ToggleGroup>
                 </div>
+                <div
+                  className="flex items-center gap-1.5 rounded-md border bg-background px-2 h-9"
+                  title="Recortar a imagem antes de enviar para a IA"
+                >
+                  <Crop className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ToggleGroup
+                    type="single"
+                    size="sm"
+                    value={cropMode}
+                    onValueChange={(v) => v && setCropMode(v as CropMode)}
+                    disabled={isExtracting !== null}
+                    className="gap-0.5"
+                  >
+                    <ToggleGroupItem
+                      value="none"
+                      className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      title="Documento inteiro (padrão)"
+                    >
+                      Inteiro
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="top"
+                      className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      title="Manter apenas os 50% superiores"
+                    >
+                      Topo 50%
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="bottom"
+                      className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      title="Manter apenas os 50% inferiores"
+                    >
+                      Base 50%
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
 
                 <Button
                   size="sm"
