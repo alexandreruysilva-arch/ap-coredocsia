@@ -1541,46 +1541,43 @@ function UploadPage() {
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Provedor de IA
                   </Label>
-                  <ToggleGroup
-                    type="single"
-                    size="sm"
+                  <Select
                     value={aiProvider}
                     onValueChange={(v) => {
                       if (v === "gemini" || v === "claude" || v === "grok" || v === "openai") setAiProvider(v);
                     }}
                     disabled={isExtracting !== null}
-                    className="w-full justify-start rounded-lg border bg-background p-1 shadow-sm"
-                    aria-label="Provedor de IA"
                   >
-                    <ToggleGroupItem
-                      value="gemini"
-                      className="h-8 flex-1 md:flex-none px-3 text-xs font-medium data-[state=on]:bg-gradient-to-r data-[state=on]:from-slate-800 data-[state=on]:via-blue-800 data-[state=on]:to-sky-700 data-[state=on]:text-white data-[state=on]:shadow"
-                      title="Usar Google Gemini"
-                    >
-                      Gemini
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="claude"
-                      className="h-8 flex-1 md:flex-none px-3 text-xs font-medium data-[state=on]:bg-gradient-to-r data-[state=on]:from-orange-700 data-[state=on]:via-amber-700 data-[state=on]:to-rose-700 data-[state=on]:text-white data-[state=on]:shadow"
-                      title="Usar Anthropic Claude"
-                    >
-                      Claude
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="grok"
-                      className="h-8 flex-1 md:flex-none px-3 text-xs font-medium data-[state=on]:bg-gradient-to-r data-[state=on]:from-black data-[state=on]:via-neutral-800 data-[state=on]:to-neutral-600 data-[state=on]:text-white data-[state=on]:shadow"
-                      title={`Usar xAI Grok (modelo: ${grokModel})`}
-                    >
-                      Grok
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="openai"
-                      className="h-8 flex-1 md:flex-none px-3 text-xs font-medium data-[state=on]:bg-gradient-to-r data-[state=on]:from-emerald-700 data-[state=on]:via-teal-700 data-[state=on]:to-cyan-700 data-[state=on]:text-white data-[state=on]:shadow"
-                      title={`Usar OpenAI (modelo: ${openaiModel})`}
-                    >
-                      OpenAI
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                    <SelectTrigger className="h-10 bg-background shadow-sm">
+                      <SelectValue placeholder="Selecione o provedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gemini">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-slate-800 to-sky-600" />
+                          Gemini
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="claude">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-orange-700 to-rose-700" />
+                          Claude
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="grok">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-black to-neutral-500" />
+                          Grok <span className="text-muted-foreground text-xs">({grokModel})</span>
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="openai">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-700 to-cyan-700" />
+                          OpenAI <span className="text-muted-foreground text-xs">({openaiModel})</span>
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Páginas lidas */}
@@ -1589,26 +1586,22 @@ function UploadPage() {
                     <FileText className="h-3 w-3" />
                     Páginas lidas
                   </Label>
-                  <ToggleGroup
-                    type="single"
-                    size="sm"
+                  <Select
                     value={String(maxPages)}
-                    onValueChange={(v) => v && setMaxPages(parseInt(v, 10) || 1)}
+                    onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
                     disabled={isExtracting !== null}
-                    className="rounded-lg border bg-background p-1 shadow-sm"
-                    title="Número de páginas iniciais que a IA irá ler"
                   >
-                    {[1, 2, 3, 5, 10].map((n) => (
-                      <ToggleGroupItem
-                        key={n}
-                        value={String(n)}
-                        className="h-8 w-8 p-0 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
-                        title={n === 1 ? "1 página (padrão)" : `${n} páginas`}
-                      >
-                        {n}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
+                    <SelectTrigger className="h-10 w-full md:w-[160px] bg-background shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 5, 10].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n === 1 ? "1 página (padrão)" : `${n} páginas`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Recorte */}
