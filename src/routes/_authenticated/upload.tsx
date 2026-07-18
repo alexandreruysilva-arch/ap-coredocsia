@@ -1535,121 +1535,118 @@ function UploadPage() {
 
             {/* Painel de configuração da extração por IA */}
             <Card className="p-3 md:p-4 bg-muted/30 border-muted-foreground/10">
-              <div className="flex flex-col gap-4">
-                {/* Linha de configurações: provedor + páginas + área */}
-                <div className="flex flex-wrap items-end gap-3">
-                  {/* Provedor de IA — select compacto */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Provedor de IA
-                    </Label>
-                    <Select
-                      value={aiProvider}
-                      onValueChange={(v) => {
-                        if (v === "gemini" || v === "claude" || v === "grok" || v === "openai") setAiProvider(v);
-                      }}
-                      disabled={isExtracting !== null}
-                    >
-                      <SelectTrigger className="h-9 w-[150px] bg-background shadow-sm">
-                        <SelectValue placeholder="Provedor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gemini">
-                          <span className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-slate-800 to-sky-600" />
-                            Gemini
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="claude">
-                          <span className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-orange-700 to-rose-700" />
-                            Claude
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="grok">
-                          <span className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-black to-neutral-500" />
-                            Grok
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="openai">
-                          <span className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-700 to-cyan-700" />
-                            OpenAI
-                          </span>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="flex flex-wrap items-end gap-3">
+                {/* Provedor de IA — select compacto */}
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Provedor de IA
+                  </Label>
+                  <Select
+                    value={aiProvider}
+                    onValueChange={(v) => {
+                      if (v === "gemini" || v === "claude" || v === "grok" || v === "openai") setAiProvider(v);
+                    }}
+                    disabled={isExtracting !== null}
+                  >
+                    <SelectTrigger className="h-9 w-[150px] bg-background shadow-sm">
+                      <SelectValue placeholder="Provedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gemini">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-slate-800 to-sky-600" />
+                          Gemini
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="claude">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-orange-700 to-rose-700" />
+                          Claude
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="grok">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-black to-neutral-500" />
+                          Grok
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="openai">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-700 to-cyan-700" />
+                          OpenAI
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Páginas lidas */}
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      <FileText className="h-3 w-3" />
-                      Páginas lidas
-                    </Label>
-                    <Select
-                      value={String(maxPages)}
-                      onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
-                      disabled={isExtracting !== null}
-                    >
-                      <SelectTrigger className="h-9 w-[130px] bg-background shadow-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 5, 10].map((n) => (
-                          <SelectItem key={n} value={String(n)}>
-                            {n === 1 ? "1 página (padrão)" : `${n} páginas`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Páginas lidas */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <FileText className="h-3 w-3" />
+                    Páginas lidas
+                  </Label>
+                  <Select
+                    value={String(maxPages)}
+                    onValueChange={(v) => setMaxPages(parseInt(v, 10) || 1)}
+                    disabled={isExtracting !== null}
+                  >
+                    <SelectTrigger className="h-9 w-[130px] bg-background shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 5, 10].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n === 1 ? "1 página (padrão)" : `${n} páginas`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Área do documento */}
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      <Crop className="h-3 w-3" />
-                      Área do documento
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <ToggleGroup
-                        type="single"
-                        size="sm"
-                        value={cropMode}
-                        onValueChange={(v) => v && setCropMode(v as CropMode)}
-                        disabled={isExtracting !== null}
-                        className="rounded-lg border bg-background p-1 shadow-sm"
+                {/* Área do documento */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Crop className="h-3 w-3" />
+                    Área do documento
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <ToggleGroup
+                      type="single"
+                      size="sm"
+                      value={cropMode}
+                      onValueChange={(v) => v && setCropMode(v as CropMode)}
+                      disabled={isExtracting !== null}
+                      className="rounded-lg border bg-background p-1 shadow-sm"
+                    >
+                      <ToggleGroupItem
+                        value="none"
+                        className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
+                        title="Documento inteiro (padrão)"
                       >
-                        <ToggleGroupItem
-                          value="none"
-                          className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
-                          title="Documento inteiro (padrão)"
-                        >
-                          Inteiro
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                          value="top"
-                          className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
-                          title="Manter apenas os 50% superiores"
-                        >
-                          Topo
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                          value="bottom"
-                          className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
-                          title="Manter apenas os 50% inferiores"
-                        >
-                          Base
-                        </ToggleGroupItem>
-                      </ToggleGroup>
-                      <CropPreviewThumb mode={cropMode} items={items} />
-                    </div>
+                        Inteiro
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="top"
+                        className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
+                        title="Manter apenas os 50% superiores"
+                      >
+                        Topo
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="bottom"
+                        className="h-7 px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow"
+                        title="Manter apenas os 50% inferiores"
+                      >
+                        Base
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                    <CropPreviewThumb mode={cropMode} items={items} />
                   </div>
                 </div>
 
                 {/* Ações principais */}
-                <div className="flex items-center justify-end gap-2 flex-wrap border-t border-border/60 pt-3">
+                <div className="flex items-center gap-2 flex-wrap ml-auto">
                   {isExtracting !== null && (
                     <Button
                       size="sm"
