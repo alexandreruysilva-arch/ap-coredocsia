@@ -802,7 +802,9 @@ function UploadPage() {
       const rasterOrCompressed = shouldRasterize
         ? await pdfPagesToJpeg(item.file, { maxPages })
         : await compressImageIfNeeded(item.file);
-      const fileForAi = await cropImageHalf(rasterOrCompressed, cropMode);
+      // Corte só é permitido quando 1 única página é enviada à IA.
+      const effectiveCropMode: CropMode = maxPages === 1 ? cropMode : "none";
+      const fileForAi = await cropImageHalf(rasterOrCompressed, effectiveCropMode);
       form.append("file", fileForAi);
       form.append("fields", fieldsJson);
       form.append("maxPages", String(maxPages));
@@ -947,7 +949,9 @@ function UploadPage() {
       const rasterOrCompressed = shouldRasterize
         ? await pdfPagesToJpeg(item.file, { maxPages })
         : await compressImageIfNeeded(item.file);
-      const fileForAi = await cropImageHalf(rasterOrCompressed, cropMode);
+      // Corte só é permitido quando 1 única página é enviada à IA.
+      const effectiveCropMode: CropMode = maxPages === 1 ? cropMode : "none";
+      const fileForAi = await cropImageHalf(rasterOrCompressed, effectiveCropMode);
       form.append("file", fileForAi);
       form.append("fields", fieldsJson);
       form.append("maxPages", String(maxPages));
@@ -1608,7 +1612,7 @@ function UploadPage() {
                     </Select>
                 </div>
 
-                {/* Área do documento */}
+                {/* Área do documento — corte só é permitido com 1 página */}
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     <Crop className="h-3 w-3" />
@@ -1618,9 +1622,9 @@ function UploadPage() {
                     <ToggleGroup
                       type="single"
                       size="sm"
-                      value={cropMode}
+                      value={maxPages === 1 ? cropMode : "none"}
                       onValueChange={(v) => v && setCropMode(v as CropMode)}
-                      disabled={isExtracting !== null}
+                      disabled={isExtracting !== null || maxPages !== 1}
                       className="rounded-lg border bg-background p-1 shadow-sm"
                     >
                       <ToggleGroupItem
@@ -1645,8 +1649,13 @@ function UploadPage() {
                         Base
                       </ToggleGroupItem>
                     </ToggleGroup>
-                    <CropPreviewThumb mode={cropMode} items={items} />
+                    <CropPreviewThumb mode={maxPages === 1 ? cropMode : "none"} items={items} />
                   </div>
+                  {maxPages !== 1 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Corte disponível apenas com "1 página".
+                    </p>
+                  )}
                 </div>
 
                 {/* Ações principais */}
