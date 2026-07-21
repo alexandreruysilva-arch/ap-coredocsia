@@ -1718,7 +1718,7 @@ function UploadPage() {
                 </div>
 
                 {/* Ações principais */}
-                <div className="flex items-center gap-2 flex-wrap ml-auto">
+                <div className="flex items-end gap-2 flex-wrap ml-auto">
                   {isExtracting !== null && (
                     <Button
                       size="sm"
