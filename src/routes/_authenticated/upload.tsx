@@ -802,7 +802,7 @@ function UploadPage() {
     let incomplete = 0;
     let canceled = false;
     let completed = 0;
-    const CONCURRENCY = 3;
+    const CONCURRENCY = concurrency;
 
     const processOne = async (item: (typeof queued)[number]) => {
       if (cancelExtractRef.current) {
