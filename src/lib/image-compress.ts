@@ -1,19 +1,20 @@
 /**
  * Compressão client-side de imagens antes de enviar para a IA.
- * Reduz o número de tokens de input do Gemini (cobrado por "tile" ~768px).
  *
  * - Só atua em imagens rasterizáveis (JPEG/PNG/WEBP/HEIC quando o browser suporta).
  * - PDFs e outros formatos passam sem alteração.
  * - Redimensiona mantendo proporção, com lado maior = MAX_DIMENSION.
- * - Reencoda como JPEG qualidade 0.82.
+ * - Reencoda como JPEG qualidade JPEG_QUALITY.
  * - Se o resultado ficar MAIOR que o original, mantém o original.
  */
 
-// Gemini fatura por tile de 768px. 1024 mantém 2x2 tiles (~1.100 tokens)
-// contra 3x3 (~2.100) quando usávamos 1600. OCR de campos de indexação
-// permanece legível nesse tamanho.
-const MAX_DIMENSION = 1024;
-const JPEG_QUALITY = 0.82;
+// Alinhado à rasterização de PDF (pdf-to-image.ts) para que o MESMO documento
+// tenha a mesma qualidade quer venha como imagem, quer como PDF. 1600px preserva
+// legibilidade de OCR em documentos densos (letra pequena); custa mais tokens de
+// input no Gemini (fatura por tile de 768px) que os 1024px anteriores, trade-off
+// aceito em favor da precisão da extração.
+const MAX_DIMENSION = 1600;
+const JPEG_QUALITY = 0.85;
 const COMPRESSIBLE_TYPES = /^image\/(jpeg|jpg|png|webp|heic|heif)$/i;
 
 export async function compressImageIfNeeded(file: File): Promise<File> {
@@ -36,6 +37,9 @@ export async function compressImageIfNeeded(file: File): Promise<File> {
       bitmap.close?.();
       return file;
     }
+    // Reamostragem de alta qualidade no downscale (evita serrilhado/perda extra).
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.drawImage(bitmap, 0, 0, targetW, targetH);
     bitmap.close?.();
 

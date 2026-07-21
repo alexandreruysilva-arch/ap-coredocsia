@@ -38,8 +38,12 @@ export async function cropImageHalf(file: File, mode: CropMode): Promise<File> {
     ctx.drawImage(bitmap, 0, sy, width, halfH, 0, 0, width, halfH);
     bitmap.close?.();
 
+    // O corte re-encoda uma imagem que normalmente JÁ é JPEG (saída de
+    // pdf-to-image / image-compress). Qualidade alta (0.95) aqui torna essa
+    // segunda geração de JPEG praticamente sem perda visível. O corte é 1:1
+    // (mesma escala), então não há reamostragem/downscale envolvido.
     const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.85),
+      canvas.toBlob(resolve, "image/jpeg", 0.95),
     );
     if (!blob) return file;
 
