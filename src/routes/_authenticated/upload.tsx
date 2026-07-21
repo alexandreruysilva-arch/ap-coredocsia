@@ -30,7 +30,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractFieldsWithGemini } from "@/lib/gemini.functions";
 import { compressImageIfNeeded } from "@/lib/image-compress";
 import { pdfPagesToJpeg } from "@/lib/pdf-to-image";
-import { cropImageHalf, type CropMode } from "@/lib/image-crop";
+import { type CropMode } from "@/lib/image-crop";
 import { measure } from "@/lib/perf";
 import { extractFieldsWithClaude } from "@/lib/claude.functions";
 import { extractFieldsWithGrok } from "@/lib/grok.functions";
@@ -67,6 +67,38 @@ import {
 } from "@/lib/documents";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+type AiProvider = "gemini" | "claude" | "grok" | "openai";
+
+/**
+ * Prepara o arquivo enviado à IA:
+ * - Imagem: comprime/redimensiona (+ corte no mesmo passo de canvas).
+ * - PDF em Grok/OpenAI (só aceitam imagem): rasteriza (com trava de canvas) + corte.
+ * - PDF em Gemini/Claude: envia o PDF NATIVO (melhor qualidade e sem limite de
+ *   canvas); só rasteriza a página 1 quando há corte a aplicar.
+ * O corte só vale quando maxPages === 1.
+ */
+async function prepareFileForAi(
+  file: File,
+  opts: { provider: AiProvider; maxPages: number; cropMode: CropMode },
+): Promise<File> {
+  const { provider, maxPages, cropMode } = opts;
+  const effectiveCrop: CropMode = maxPages === 1 ? cropMode : "none";
+  const isPdf = file.type === "application/pdf";
+  const imageOnly = provider === "grok" || provider === "openai";
+
+  if (isPdf) {
+    if (imageOnly) {
+      return pdfPagesToJpeg(file, { maxPages, cropMode: effectiveCrop });
+    }
+    // Gemini/Claude leem PDF nativo; só rasterizamos p/ aplicar corte na página 1.
+    if (effectiveCrop !== "none") {
+      return pdfPagesToJpeg(file, { maxPages: 1, cropMode: effectiveCrop });
+    }
+    return file;
+  }
+  return compressImageIfNeeded(file, { cropMode: effectiveCrop });
+}
 
 function charDiff(a: string, b: string): number {
   const original = Array.from(a);
@@ -825,17 +857,11 @@ function UploadPage() {
       });
       try {
         const form = new FormData();
-        const isPdf = item.file.type === "application/pdf";
-        const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages === 0 || maxPages > 1);
-        const rasterMeta = { fileName: item.file.name, sizeIn: item.file.size, maxPages, provider };
-        const rasterOrCompressed = shouldRasterize
-          ? await measure("pdfPagesToJpeg", () => pdfPagesToJpeg(item.file, { maxPages }), rasterMeta)
-          : await measure("compressImage", () => compressImageIfNeeded(item.file), rasterMeta);
-        const effectiveCropMode: CropMode = maxPages === 1 ? cropMode : "none";
+        const rasterMeta = { fileName: item.file.name, sizeIn: item.file.size, maxPages, provider, cropMode };
         const fileForAi = await measure(
-          "cropImage",
-          () => cropImageHalf(rasterOrCompressed, effectiveCropMode),
-          { fileName: rasterOrCompressed.name, sizeIn: rasterOrCompressed.size, mode: effectiveCropMode },
+          "prepareFileForAi",
+          () => prepareFileForAi(item.file, { provider, maxPages, cropMode }),
+          rasterMeta,
         );
         form.append("file", fileForAi);
         form.append("fields", fieldsJson);
@@ -1003,18 +1029,11 @@ function UploadPage() {
 
     try {
       const form = new FormData();
-      const isPdf = item.file.type === "application/pdf";
-      const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages === 0 || maxPages > 1);
-      const rasterMeta = { fileName: item.file.name, sizeIn: item.file.size, maxPages, provider, phase: "send" };
-      const rasterOrCompressed = shouldRasterize
-        ? await measure("pdfPagesToJpeg", () => pdfPagesToJpeg(item.file, { maxPages }), rasterMeta)
-        : await measure("compressImage", () => compressImageIfNeeded(item.file), rasterMeta);
-      // Corte só é permitido quando 1 única página é enviada à IA.
-      const effectiveCropMode: CropMode = maxPages === 1 ? cropMode : "none";
+      const rasterMeta = { fileName: item.file.name, sizeIn: item.file.size, maxPages, provider, cropMode, phase: "send" };
       const fileForAi = await measure(
-        "cropImage",
-        () => cropImageHalf(rasterOrCompressed, effectiveCropMode),
-        { fileName: rasterOrCompressed.name, sizeIn: rasterOrCompressed.size, mode: effectiveCropMode, phase: "send" },
+        "prepareFileForAi",
+        () => prepareFileForAi(item.file, { provider, maxPages, cropMode }),
+        rasterMeta,
       );
       form.append("file", fileForAi);
       form.append("fields", fieldsJson);

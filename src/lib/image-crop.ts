@@ -10,6 +10,43 @@ export type CropMode = "none" | "top" | "bottom";
 
 const CROPPABLE_TYPES = /^image\/(jpeg|jpg|png|webp)$/i;
 
+/**
+ * Corta 50% (topo ou base) diretamente em um canvas já rasterizado, retornando
+ * um novo canvas do mesmo tipo. Usado pelos produtores (pdf-to-image e
+ * image-compress) para cortar ANTES da única codificação JPEG — evita o ciclo
+ * redundante de codificar → decodificar → cortar → recodificar.
+ */
+export function cropCanvasHalf(
+  source: HTMLCanvasElement | OffscreenCanvas,
+  mode: CropMode,
+): HTMLCanvasElement | OffscreenCanvas {
+  if (mode === "none") return source;
+  const width = source.width;
+  const height = source.height;
+  const halfH = Math.floor(height / 2);
+  if (halfH <= 0) return source;
+  const sy = mode === "bottom" ? height - halfH : 0;
+
+  const isOffscreen = typeof OffscreenCanvas !== "undefined" && source instanceof OffscreenCanvas;
+  let dest: HTMLCanvasElement | OffscreenCanvas;
+  if (isOffscreen) {
+    dest = new OffscreenCanvas(width, halfH);
+  } else {
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = halfH;
+    dest = c;
+  }
+  const ctx = (dest as HTMLCanvasElement).getContext("2d") as
+    | CanvasRenderingContext2D
+    | null;
+  if (!ctx) return source;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, halfH);
+  ctx.drawImage(source as CanvasImageSource, 0, sy, width, halfH, 0, 0, width, halfH);
+  return dest;
+}
+
 export async function cropImageHalf(file: File, mode: CropMode): Promise<File> {
   if (!file || mode === "none") return file;
   if (!CROPPABLE_TYPES.test(file.type)) return file;

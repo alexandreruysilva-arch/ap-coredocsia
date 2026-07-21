@@ -5,8 +5,10 @@
  * - PDFs e outros formatos passam sem alteração.
  * - Redimensiona mantendo proporção, com lado maior = MAX_DIMENSION.
  * - Reencoda como JPEG qualidade JPEG_QUALITY.
- * - Se o resultado ficar MAIOR que o original, mantém o original.
+ * - Se o resultado ficar MAIOR que o original, mantém o original (exceto quando
+ *   há corte, pois aí o original sem corte não substitui o resultado).
  */
+import { cropCanvasHalf, type CropMode } from "./image-crop";
 
 // Alinhado à rasterização de PDF (pdf-to-image.ts) para que o MESMO documento
 // tenha a mesma qualidade quer venha como imagem, quer como PDF. 1600px preserva
@@ -17,7 +19,11 @@ const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.85;
 const COMPRESSIBLE_TYPES = /^image\/(jpeg|jpg|png|webp|heic|heif)$/i;
 
-export async function compressImageIfNeeded(file: File): Promise<File> {
+export async function compressImageIfNeeded(
+  file: File,
+  opts: { cropMode?: CropMode } = {},
+): Promise<File> {
+  const cropMode = opts.cropMode ?? "none";
   if (!file || !COMPRESSIBLE_TYPES.test(file.type)) return file;
   if (typeof document === "undefined" || typeof createImageBitmap === "undefined") return file;
 
@@ -43,12 +49,20 @@ export async function compressImageIfNeeded(file: File): Promise<File> {
     ctx.drawImage(bitmap, 0, 0, targetW, targetH);
     bitmap.close?.();
 
-    const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
-    );
-    if (!blob || blob.size >= file.size) return file;
+    // Corta no mesmo passo de canvas (antes da única codificação JPEG).
+    const finalCanvas = cropCanvasHalf(canvas, cropMode) as HTMLCanvasElement;
 
-    const newName = file.name.replace(/\.(png|webp|heic|heif|jpe?g)$/i, "") + ".jpg";
+    const blob: Blob | null = await new Promise((resolve) =>
+      finalCanvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
+    );
+    if (!blob) return file;
+    // Só descartamos o resultado por ser maior que o original quando NÃO há
+    // corte — com corte, o original (sem corte) não é um substituto válido.
+    if (cropMode === "none" && blob.size >= file.size) return file;
+
+    const suffix = cropMode === "top" ? "-topo" : cropMode === "bottom" ? "-base" : "";
+    const newName =
+      file.name.replace(/\.(png|webp|heic|heif|jpe?g)$/i, "") + `${suffix}.jpg`;
     return new File([blob], newName, { type: "image/jpeg", lastModified: Date.now() });
   } catch {
     return file;
