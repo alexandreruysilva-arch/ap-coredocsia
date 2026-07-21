@@ -1777,7 +1777,7 @@ function UploadPage() {
             </Card>
             <ul className="divide-y divide-border rounded-md border border-border">
               {items.map((item) => {
-                const isProcessing = batchProgress?.itemId === item.id;
+                const isProcessing = activeItemIds.has(item.id) || batchProgress?.itemId === item.id;
                 return (
                 <li
                   key={item.id}
