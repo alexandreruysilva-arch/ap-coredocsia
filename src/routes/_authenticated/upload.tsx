@@ -74,9 +74,13 @@ type AiProvider = "gemini" | "claude" | "grok" | "openai";
  * Prepara o arquivo enviado à IA:
  * - Imagem: comprime/redimensiona (+ corte no mesmo passo de canvas).
  * - PDF em Grok/OpenAI (só aceitam imagem): rasteriza (com trava de canvas) + corte.
- * - PDF em Gemini/Claude: envia o PDF NATIVO (melhor qualidade e sem limite de
- *   canvas); só rasteriza a página 1 quando há corte a aplicar.
- * O corte só vale quando maxPages === 1.
+ * - PDF em Gemini/Claude:
+ *     • "Todas as páginas" (maxPages === 0) → envia o PDF NATIVO (melhor
+ *       qualidade e sem limite de canvas; o usuário quer o documento inteiro).
+ *     • número limitado de páginas (1, 2, 3...) → rasteriza as N primeiras. Isso
+ *       mantém o custo de tokens controlado — o PDF nativo cobraria o documento
+ *       inteiro mesmo pedindo "N primeiras páginas" no prompt.
+ * O corte só vale quando maxPages === 1 (aplicado na rasterização da página 1).
  */
 async function prepareFileForAi(
   file: File,
@@ -88,14 +92,12 @@ async function prepareFileForAi(
   const imageOnly = provider === "grok" || provider === "openai";
 
   if (isPdf) {
-    if (imageOnly) {
-      return pdfPagesToJpeg(file, { maxPages, cropMode: effectiveCrop });
+    // Gemini/Claude com "Todas as páginas": PDF nativo (evita rasterizar/empilhar
+    // tudo num JPEG e o limite de canvas). Demais casos rasterizam.
+    if (!imageOnly && maxPages === 0) {
+      return file;
     }
-    // Gemini/Claude leem PDF nativo; só rasterizamos p/ aplicar corte na página 1.
-    if (effectiveCrop !== "none") {
-      return pdfPagesToJpeg(file, { maxPages: 1, cropMode: effectiveCrop });
-    }
-    return file;
+    return pdfPagesToJpeg(file, { maxPages, cropMode: effectiveCrop });
   }
   return compressImageIfNeeded(file, { cropMode: effectiveCrop });
 }
