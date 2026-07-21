@@ -956,12 +956,17 @@ function UploadPage() {
       const form = new FormData();
       const isPdf = item.file.type === "application/pdf";
       const shouldRasterize = isPdf && (provider === "grok" || provider === "openai" || maxPages === 0 || maxPages > 1);
+      const rasterMeta = { fileName: item.file.name, sizeIn: item.file.size, maxPages, provider, phase: "send" };
       const rasterOrCompressed = shouldRasterize
-        ? await pdfPagesToJpeg(item.file, { maxPages })
-        : await compressImageIfNeeded(item.file);
+        ? await measure("pdfPagesToJpeg", () => pdfPagesToJpeg(item.file, { maxPages }), rasterMeta)
+        : await measure("compressImage", () => compressImageIfNeeded(item.file), rasterMeta);
       // Corte só é permitido quando 1 única página é enviada à IA.
       const effectiveCropMode: CropMode = maxPages === 1 ? cropMode : "none";
-      const fileForAi = await cropImageHalf(rasterOrCompressed, effectiveCropMode);
+      const fileForAi = await measure(
+        "cropImage",
+        () => cropImageHalf(rasterOrCompressed, effectiveCropMode),
+        { fileName: rasterOrCompressed.name, sizeIn: rasterOrCompressed.size, mode: effectiveCropMode, phase: "send" },
+      );
       form.append("file", fileForAi);
       form.append("fields", fieldsJson);
       form.append("maxPages", String(maxPages));
@@ -970,7 +975,11 @@ function UploadPage() {
       if (provider === "grok") form.append("model", grokModel);
       if (provider === "openai") form.append("model", openaiModel);
 
-      const res = (await runExtractWithFreshAuth(extractFn, form)) as {
+      const res = (await measure(
+        "aiExtract",
+        () => runExtractWithFreshAuth(extractFn, form),
+        { fileName: fileForAi.name, sizeSent: fileForAi.size, provider, phase: "send" },
+      )) as {
         values: Record<string, string>;
         usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; log_id?: string | null };
       };
