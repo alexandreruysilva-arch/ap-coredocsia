@@ -31,6 +31,7 @@ import { extractFieldsWithGemini } from "@/lib/gemini.functions";
 import { compressImageIfNeeded } from "@/lib/image-compress";
 import { pdfPagesToJpeg } from "@/lib/pdf-to-image";
 import { cropImageHalf, type CropMode } from "@/lib/image-crop";
+import { measure } from "@/lib/perf";
 import { extractFieldsWithClaude } from "@/lib/claude.functions";
 import { extractFieldsWithGrok } from "@/lib/grok.functions";
 import { extractFieldsWithOpenAI } from "@/lib/openai.functions";
