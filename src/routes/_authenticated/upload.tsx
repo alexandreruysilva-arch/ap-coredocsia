@@ -1957,18 +1957,18 @@ function UploadPage() {
                 disabled={
                   isUploading ||
                   isExtracting !== null ||
-                  !items.some((i) => i.status === "queued" && i.aiStatus) ||
-                  items.some((i) => i.status === "queued" && !i.aiStatus)
+                  !items.some((i) => i.status === "queued" && isItemReady(i)) ||
+                  items.some((i) => i.status === "queued" && !isItemReady(i))
                 }
                 title={
-                  items.some((i) => i.status === "queued" && !i.aiStatus)
-                    ? "Processe os arquivos com a IA antes de enviar"
+                  items.some((i) => i.status === "queued" && !isItemReady(i))
+                    ? "Processe os arquivos com a IA ou preencha os campos manualmente antes de enviar"
                     : undefined
                 }
                 className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-md shadow-indigo-500/30"
               >
                 <Upload className="h-4 w-4 mr-1" />
-                Enviar {items.filter((i) => i.status === "queued" && i.aiStatus).length} arquivo(s)
+                Enviar {items.filter((i) => i.status === "queued" && isItemReady(i)).length} arquivo(s)
               </Button>
             </div>
           </div>
