@@ -1614,49 +1614,8 @@ function UploadPage() {
             {/* Painel de configuração da extração por IA */}
             <Card className="p-3 md:p-4 bg-muted/30 border-muted-foreground/10">
               <div className="flex flex-wrap items-end gap-3">
-                {/* Provedor de IA — select compacto */}
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Provedor de IA
-                  </Label>
-                  <Select
-                    value={aiProvider}
-                    onValueChange={(v) => {
-                      if (v === "gemini" || v === "claude" || v === "grok" || v === "openai") setAiProvider(v);
-                    }}
-                    disabled={isExtracting !== null}
-                  >
-                    <SelectTrigger className="h-9 w-[150px] bg-background shadow-sm">
-                      <SelectValue placeholder="Provedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gemini">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-slate-800 to-sky-600" />
-                          Gemini
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="claude">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-orange-700 to-rose-700" />
-                          Claude
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="grok">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-black to-neutral-500" />
-                          Grok
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="openai">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-700 to-cyan-700" />
-                          OpenAI
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Provedor de IA foi movido para junto do botão "Preencher" */}
+
 
                 {/* Páginas lidas */}
                 <div className="space-y-1.5">
