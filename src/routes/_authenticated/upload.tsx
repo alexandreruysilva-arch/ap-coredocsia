@@ -35,6 +35,7 @@ import { measure } from "@/lib/perf";
 import { extractFieldsWithClaude } from "@/lib/claude.functions";
 import { extractFieldsWithGrok } from "@/lib/grok.functions";
 import { extractFieldsWithOpenAI } from "@/lib/openai.functions";
+import { extractFieldsWithKimi } from "@/lib/kimi.functions";
 
 import { lookupByKey } from "@/lib/lookup";
 import { cn } from "@/lib/utils";
