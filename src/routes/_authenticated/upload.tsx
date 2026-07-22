@@ -79,7 +79,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type AiProvider = "gemini" | "claude" | "grok" | "openai" | "kimi";
+type AiProvider = AiProvider | "kimi";
 
 /**
  * Prepara o arquivo enviado à IA:
@@ -810,7 +810,7 @@ function UploadPage() {
     }
   }
 
-  async function handleAutoFillAll(provider: "gemini" | "claude" | "grok" | "openai") {
+  async function handleAutoFillAll(provider: AiProvider) {
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
     if (fields.length === 0) return toast.error("Este tipo não tem campos de indexação");
 
@@ -999,7 +999,7 @@ function UploadPage() {
 
 
 
-  async function reprocessItem(itemId: string, providerOverride?: "gemini" | "claude" | "grok" | "openai") {
+  async function reprocessItem(itemId: string, providerOverride?: AiProvider) {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     if (docTypeId === "none") return toast.error("Selecione o tipo de documento");
