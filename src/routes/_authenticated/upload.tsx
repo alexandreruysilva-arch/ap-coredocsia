@@ -1020,7 +1020,9 @@ function UploadPage() {
           ? "Grok"
           : provider === "openai"
             ? "OpenAI"
-            : "Gemini";
+            : provider === "kimi"
+              ? "Kimi"
+              : "Gemini";
     const extractFn =
       provider === "claude"
         ? extractClaudeFn
@@ -1028,7 +1030,9 @@ function UploadPage() {
           ? extractGrokFn
           : provider === "openai"
             ? extractOpenAIFn
-            : extractGeminiFn;
+            : provider === "kimi"
+              ? extractKimiFn
+              : extractGeminiFn;
 
 
     const fieldDefs = fields.map((f) => ({
