@@ -315,6 +315,18 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
                 </Select>
                 <p className="text-xs text-muted-foreground">Modelo atual: <code>{openaiModel}</code></p>
               </div>
+              <div className="space-y-2">
+                <Label>Motor Kimi</Label>
+                <Select value={kimiModel} onValueChange={setKimiModel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {KIMI_MODELS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Modelo atual: <code>{kimiModel}</code></p>
+              </div>
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
