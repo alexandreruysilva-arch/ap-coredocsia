@@ -589,17 +589,22 @@ function UploadPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
-        .select("ai_grok_model, ai_openai_model")
+        .select("*")
         .eq("id", orgId as string)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as unknown as {
+        ai_grok_model?: string;
+        ai_openai_model?: string;
+        ai_kimi_model?: string;
+      } | null;
     },
   });
   useEffect(() => {
     if (!orgAiModels) return;
     if (orgAiModels.ai_grok_model) setGrokModel(orgAiModels.ai_grok_model);
     if (orgAiModels.ai_openai_model) setOpenaiModel(orgAiModels.ai_openai_model);
+    if (orgAiModels.ai_kimi_model) setKimiModel(orgAiModels.ai_kimi_model);
   }, [orgAiModels]);
   const [maxPages, setMaxPages] = useState<number>(() => {
     if (typeof window === "undefined") return 1;
