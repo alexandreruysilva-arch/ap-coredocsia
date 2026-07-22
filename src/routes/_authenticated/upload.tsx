@@ -1851,6 +1851,12 @@ function UploadPage() {
                             OpenAI
                           </span>
                         </SelectItem>
+                        <SelectItem value="kimi">
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-fuchsia-700 to-purple-700" />
+                            Kimi
+                          </span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
