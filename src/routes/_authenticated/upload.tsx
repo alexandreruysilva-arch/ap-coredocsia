@@ -1072,6 +1072,7 @@ function UploadPage() {
       if (docTypeId !== "none") form.append("documentTypeId", docTypeId);
       if (provider === "grok") form.append("model", grokModel);
       if (provider === "openai") form.append("model", openaiModel);
+      if (provider === "kimi") form.append("model", kimiModel);
 
       const res = (await measure(
         "aiExtract",
