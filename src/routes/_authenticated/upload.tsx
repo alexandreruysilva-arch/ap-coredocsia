@@ -100,7 +100,7 @@ async function prepareFileForAi(
   const { provider, maxPages, cropMode } = opts;
   const effectiveCrop: CropMode = maxPages === 1 ? cropMode : "none";
   const isPdf = file.type === "application/pdf";
-  const imageOnly = provider === "grok" || provider === "openai";
+  const imageOnly = provider === "grok" || provider === "openai" || provider === "kimi";
 
   if (isPdf) {
     // Gemini/Claude com "Todas as páginas": PDF nativo (evita rasterizar/empilhar
