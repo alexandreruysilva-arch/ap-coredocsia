@@ -1819,7 +1819,7 @@ function UploadPage() {
                     <Select
                       value={aiProvider}
                       onValueChange={(v) => {
-                        if (v === "gemini" || v === "claude" || v === "grok" || v === "openai") setAiProvider(v);
+                        if (v === "gemini" || v === "claude" || v === "grok" || v === "openai" || v === "kimi") setAiProvider(v);
                       }}
                       disabled={isExtracting !== null}
                     >
