@@ -199,11 +199,17 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
-        .select("ai_gemini_model, ai_claude_model, ai_grok_model, ai_openai_model")
+        .select("*")
         .eq("id", organizationId as string)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as unknown as {
+        ai_gemini_model?: string;
+        ai_claude_model?: string;
+        ai_grok_model?: string;
+        ai_openai_model?: string;
+        ai_kimi_model?: string;
+      } | null;
     },
   });
 
@@ -211,6 +217,7 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
   const [claudeModel, setClaudeModel] = useState<string>("claude-haiku-4-5-20251001");
   const [grokModel, setGrokModel] = useState<string>("grok-build-0.1");
   const [openaiModel, setOpenaiModel] = useState<string>("gpt-5.4-mini");
+  const [kimiModel, setKimiModel] = useState<string>("kimi-k2");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -219,6 +226,7 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
     if (data.ai_claude_model) setClaudeModel(data.ai_claude_model);
     if (data.ai_grok_model) setGrokModel(data.ai_grok_model);
     if (data.ai_openai_model) setOpenaiModel(data.ai_openai_model);
+    if (data.ai_kimi_model) setKimiModel(data.ai_kimi_model);
   }, [data]);
 
   async function handleSave() {
@@ -232,7 +240,8 @@ function AiModelsSettings({ organizationId }: { organizationId: string | undefin
           ai_claude_model: claudeModel,
           ai_grok_model: grokModel,
           ai_openai_model: openaiModel,
-        })
+          ai_kimi_model: kimiModel,
+        } as never)
         .eq("id", organizationId);
       if (error) throw error;
       toast.success("Modelos de IA atualizados!");
