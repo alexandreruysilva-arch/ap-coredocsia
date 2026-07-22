@@ -574,14 +574,15 @@ function UploadPage() {
   const [companyId, setCompanyId] = useState<string>("none");
   const [docTypeId, setDocTypeId] = useState<string>("none");
   const [isUploading, setIsUploading] = useState(false);
-  const [isExtracting, setIsExtracting] = useState<null | "gemini" | "claude" | "grok" | "openai">(null);
-  const [aiProvider, setAiProvider] = useState<"gemini" | "claude" | "grok" | "openai">(() => {
+  const [isExtracting, setIsExtracting] = useState<null | AiProvider>(null);
+  const [aiProvider, setAiProvider] = useState<AiProvider>(() => {
     if (typeof window === "undefined") return "gemini";
     const saved = window.localStorage.getItem("upload:aiProvider");
-    return saved === "claude" || saved === "grok" || saved === "openai" ? saved : "gemini";
+    return saved === "claude" || saved === "grok" || saved === "openai" || saved === "kimi" ? (saved as AiProvider) : "gemini";
   });
   const [grokModel, setGrokModel] = useState<string>("grok-build-0.1");
   const [openaiModel, setOpenaiModel] = useState<string>("gpt-5.4-mini");
+  const [kimiModel, setKimiModel] = useState<string>("kimi-k2");
   const { data: orgAiModels } = useQuery({
     queryKey: ["org-ai-models", orgId],
     enabled: !!orgId,
