@@ -838,7 +838,9 @@ function UploadPage() {
           ? extractGrokFn
           : provider === "openai"
             ? extractOpenAIFn
-            : extractGeminiFn;
+            : provider === "kimi"
+              ? extractKimiFn
+              : extractGeminiFn;
     const providerLabel =
       provider === "claude"
         ? "Claude"
@@ -846,7 +848,9 @@ function UploadPage() {
           ? "Grok"
           : provider === "openai"
             ? "OpenAI"
-            : "Gemini";
+            : provider === "kimi"
+              ? "Kimi"
+              : "Gemini";
 
 
     let ok = 0;
