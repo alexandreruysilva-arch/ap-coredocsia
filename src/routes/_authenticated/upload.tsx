@@ -1879,7 +1879,9 @@ function UploadPage() {
                           ? "bg-gradient-to-r from-black via-neutral-800 to-neutral-600 hover:from-neutral-900 hover:via-neutral-700 hover:to-neutral-500 shadow-black/40 hover:shadow-lg hover:shadow-neutral-700/50 text-white"
                           : aiProvider === "openai"
                             ? "bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-teal-700/30 hover:shadow-lg hover:shadow-cyan-500/50"
-                            : "bg-gradient-to-r from-slate-800 via-blue-800 to-sky-700 hover:from-indigo-700 hover:via-blue-600 hover:to-cyan-500 shadow-blue-800/30 hover:shadow-lg hover:shadow-sky-500/50",
+                            : aiProvider === "kimi"
+                              ? "bg-gradient-to-r from-fuchsia-700 via-purple-700 to-indigo-700 hover:from-fuchsia-600 hover:via-purple-600 hover:to-indigo-600 shadow-purple-700/30 hover:shadow-lg hover:shadow-fuchsia-500/50"
+                              : "bg-gradient-to-r from-slate-800 via-blue-800 to-sky-700 hover:from-indigo-700 hover:via-blue-600 hover:to-cyan-500 shadow-blue-800/30 hover:shadow-lg hover:shadow-sky-500/50",
                     )}
                   >
                     <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
