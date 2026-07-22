@@ -69,12 +69,11 @@ export const extractFieldsWithKimi = createServerFn({ method: "POST" })
     if (orgId) {
       const { data: orgModel } = await supabase
         .from("organizations")
-        .select("ai_kimi_model")
+        .select("*")
         .eq("id", orgId)
         .maybeSingle();
-      if ((orgModel as { ai_kimi_model?: string } | null)?.ai_kimi_model) {
-        MODEL = (orgModel as { ai_kimi_model: string }).ai_kimi_model;
-      }
+      const kimi = (orgModel as unknown as { ai_kimi_model?: string } | null)?.ai_kimi_model;
+      if (kimi) MODEL = kimi;
     }
     const overrideModel = (data.get("model") as string) || null;
     if (overrideModel) MODEL = overrideModel;
