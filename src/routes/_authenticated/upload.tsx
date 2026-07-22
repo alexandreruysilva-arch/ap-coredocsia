@@ -79,7 +79,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type AiProvider = "gemini" | "claude" | "grok" | "openai";
+type AiProvider = "gemini" | "claude" | "grok" | "openai" | "kimi";
 
 /**
  * Prepara o arquivo enviado à IA:
