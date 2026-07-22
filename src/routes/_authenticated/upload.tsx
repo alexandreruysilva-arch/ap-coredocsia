@@ -658,6 +658,7 @@ function UploadPage() {
   const extractClaudeFn = useServerFn(extractFieldsWithClaude);
   const extractGrokFn = useServerFn(extractFieldsWithGrok);
   const extractOpenAIFn = useServerFn(extractFieldsWithOpenAI);
+  const extractKimiFn = useServerFn(extractFieldsWithKimi);
 
   const cancelExtractRef = useRef(false);
 
