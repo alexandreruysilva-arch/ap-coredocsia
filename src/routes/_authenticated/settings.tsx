@@ -188,7 +188,7 @@ const OPENAI_MODELS = [
 const KIMI_MODELS = [
   { value: "kimi-k3", label: "Kimi K3 — mais recente" },
   { value: "kimi-k2.6", label: "Kimi K2.6" },
-  { value: "kimi-k2", label: "Kimi K2 — padrão" },
+  { value: "kimi-k2.7-code", label: "Kimi K2.7 Code — padrão" },
 ];
 
 function AiModelsSettings({ organizationId }: { organizationId: string | undefined }) {
