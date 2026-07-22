@@ -1870,7 +1870,7 @@ function UploadPage() {
                       fields.length === 0 ||
                       !items.some((i) => i.status === "queued")
                     }
-                    title={`Lê a 1ª página de cada arquivo e preenche os campos via ${aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : aiProvider === "openai" ? "OpenAI" : "Gemini"}`}
+                    title={`Lê a 1ª página de cada arquivo e preenche os campos via ${aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : aiProvider === "openai" ? "OpenAI" : aiProvider === "kimi" ? "Kimi" : "Gemini"}`}
                     className={cn(
                       "group relative overflow-hidden text-white hover:text-white border-0 shadow-md hover:-translate-y-0.5 transition-all duration-300",
                       aiProvider === "claude"
@@ -1889,7 +1889,7 @@ function UploadPage() {
                       <Sparkles className="h-4 w-4 mr-1 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" />
                     )}
                     <span className="relative">
-                      Preencher com {aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : aiProvider === "openai" ? "OpenAI" : "Gemini"}
+                      Preencher com {aiProvider === "claude" ? "Claude" : aiProvider === "grok" ? "Grok" : aiProvider === "openai" ? "OpenAI" : aiProvider === "kimi" ? "Kimi" : "Gemini"}
                     </span>
                   </Button>
                   <Button
@@ -1966,7 +1966,7 @@ function UploadPage() {
                             className="h-7 shrink-0"
                             onClick={() => reprocessItem(item.id)}
                             disabled={isExtracting !== null || isUploading}
-                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : "Gemini"}`}
+                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : item.aiProvider === "openai" ? "OpenAI" : item.aiProvider === "kimi" ? "Kimi" : "Gemini"}`}
                           >
                             {isProcessing ? (
                               <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
@@ -1989,7 +1989,7 @@ function UploadPage() {
                             className="h-7 shrink-0"
                             onClick={() => reprocessItem(item.id)}
                             disabled={isExtracting !== null || isUploading}
-                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : "Gemini"}`}
+                            title={`Reprocessar com ${item.aiProvider === "claude" ? "Claude" : item.aiProvider === "grok" ? "Grok" : item.aiProvider === "openai" ? "OpenAI" : item.aiProvider === "kimi" ? "Kimi" : "Gemini"}`}
                           >
                             {isProcessing ? (
                               <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
