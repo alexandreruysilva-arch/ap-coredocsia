@@ -185,6 +185,12 @@ const OPENAI_MODELS = [
   { value: "gpt-5.4-nano", label: "GPT-5.4 Nano — mais rápido" },
 ];
 
+const KIMI_MODELS = [
+  { value: "kimi-k3", label: "Kimi K3 — mais recente" },
+  { value: "kimi-k2.6", label: "Kimi K2.6" },
+  { value: "kimi-k2", label: "Kimi K2 — padrão" },
+];
+
 function AiModelsSettings({ organizationId }: { organizationId: string | undefined }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
