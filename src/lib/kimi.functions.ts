@@ -159,7 +159,7 @@ Regras de saída (siga RIGOROSAMENTE):
 
     const requestBody = JSON.stringify({
       model: MODEL,
-      temperature: 0,
+      temperature: 1,
       response_format: { type: "json_object" },
       messages: [
         {
