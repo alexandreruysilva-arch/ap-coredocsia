@@ -592,7 +592,7 @@ function SignaturePage() {
           >
             <p className="font-medium">
               {verifyResult.valid
-                ? "Assinatura íntegra: o arquivo corresponde ao conteúdo assinado."
+                ? "Assinatura íntegra: o PDF não foi alterado após a assinatura."
                 : (verifyResult.reason ?? "Assinatura inválida.")}
             </p>
             <p className="text-muted-foreground">Signatário: {verifyResult.signerCN}</p>
