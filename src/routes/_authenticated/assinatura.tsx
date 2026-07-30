@@ -115,10 +115,10 @@ function SignaturePage() {
   const [progress, setProgress] = useState(0);
 
   // --- Verificação -------------------------------------------------------
-  const [verifyOriginal, setVerifyOriginal] = useState<File | null>(null);
-  const [verifySig, setVerifySig] = useState<File | null>(null);
+  const [verifyPdf, setVerifyPdf] = useState<File | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerificationResult | null>(null);
   const [verifying, setVerifying] = useState(false);
+
 
   const filesInputRef = useRef<HTMLInputElement>(null);
 
