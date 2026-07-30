@@ -32,12 +32,11 @@ import { cn } from "@/lib/utils";
 import {
   loadPkcs12,
   signFileDetached,
-  verifyDetachedSignature,
   SignatureError,
   type LoadedCertificate,
   type VerificationResult,
 } from "@/lib/pkcs7-sign";
-import { signFileAsPdf } from "@/lib/pdf-sign";
+import { signFileAsPdf, verifySignedPdf } from "@/lib/pdf-sign";
 
 export const Route = createFileRoute("/_authenticated/assinatura")({
   component: SignaturePage,
