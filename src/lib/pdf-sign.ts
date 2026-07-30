@@ -255,7 +255,7 @@ export async function signFileAsPdf(
     const baseName = file.name.replace(/\.[^.]+$/, "");
     return {
       fileName: `${baseName}-assinado.pdf`,
-      blob: new Blob([signedBytes], { type: "application/pdf" }),
+      blob: new Blob([signedBytes.slice().buffer as ArrayBuffer], { type: "application/pdf" }),
       sha256: md.digest().toHex(),
     };
   } catch (error) {
