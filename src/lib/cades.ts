@@ -211,3 +211,52 @@ export function derToBytes(der: string): Uint8Array {
   for (let i = 0; i < der.length; i += 1) bytes[i] = der.charCodeAt(i) & 0xff;
   return bytes;
 }
+
+/** Atributos assinados extraídos de um CMS já existente. */
+export interface ParsedSignedAttrs {
+  /** Digest do conteúdo (bytes brutos, latin1). */
+  messageDigest: string | null;
+  signingTime: Date | null;
+}
+
+/**
+ * Percorre a árvore ASN.1 procurando os atributos assinados. Funciona para
+ * arquivos gerados por qualquer emissor, pois o node-forge não popula
+ * `signers` ao apenas ler um CMS.
+ */
+export function parseSignedAttributes(der: string): ParsedSignedAttrs {
+  const root = asn1.fromDer(der);
+  let messageDigest: string | null = null;
+  let signingTime: Date | null = null;
+
+  const walk = (node: Asn1): void => {
+    const children = Array.isArray(node.value) ? (node.value as Asn1[]) : [];
+    if (
+      node.type === asn1.Type.SEQUENCE &&
+      children.length === 2 &&
+      children[0]?.type === asn1.Type.OID &&
+      children[1]?.type === asn1.Type.SET
+    ) {
+      const attrOid = asn1.derToOid(children[0].value as string);
+      const inner = (children[1].value as Asn1[])[0];
+      if (inner) {
+        if (attrOid === OID.messageDigest && typeof inner.value === "string") {
+          messageDigest = inner.value;
+        } else if (attrOid === OID.signingTime && typeof inner.value === "string") {
+          try {
+            signingTime =
+              inner.type === asn1.Type.UTCTIME
+                ? asn1.utcTimeToDate(inner.value)
+                : asn1.generalizedTimeToDate(inner.value);
+          } catch {
+            signingTime = null;
+          }
+        }
+      }
+    }
+    children.forEach(walk);
+  };
+
+  walk(root);
+  return { messageDigest, signingTime };
+}
