@@ -201,6 +201,25 @@ function SignaturePage() {
     toast.success(`Assinatura concluída (${pending.length} arquivo(s) processado(s)).`);
   }, [items, selectedCert, outputFormat]);
 
+  /** Baixa cada arquivo assinado individualmente, sem compactação. */
+  const handleDownloadEach = useCallback(async () => {
+    const signed = items.filter((i) => i.status === "signed" && i.signature);
+    if (signed.length === 0) return;
+    for (const item of signed) {
+      const sig = item.signature!;
+      const typed =
+        sig.blob.type
+          ? sig.blob
+          : new Blob([sig.blob], {
+              type: outputFormat === "pdf" ? "application/pdf" : "application/pkcs7-signature",
+            });
+      downloadBlob(typed, sig.fileName);
+      // Pequeno intervalo evita que o navegador bloqueie downloads em sequência.
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    }
+    toast.success(`${signed.length} arquivo(s) baixado(s) individualmente.`);
+  }, [items, outputFormat]);
+
   const handleDownloadZip = useCallback(async () => {
     const signed = items.filter((i) => i.status === "signed" && i.signature);
     if (signed.length === 0) return;
@@ -418,6 +437,14 @@ function SignaturePage() {
             </Button>
             <Button
               variant="secondary"
+              onClick={() => void handleDownloadEach()}
+              disabled={signedCount === 0}
+            >
+              <Download className="h-4 w-4" />
+              Baixar {outputFormat === "pdf" ? "PDFs" : "arquivos"} ({signedCount})
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => void handleDownloadZip()}
               disabled={signedCount === 0}
             >
