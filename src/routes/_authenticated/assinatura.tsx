@@ -37,6 +37,7 @@ import {
   type LoadedCertificate,
   type VerificationResult,
 } from "@/lib/pkcs7-sign";
+import { signFileAsPdf } from "@/lib/pdf-sign";
 
 export const Route = createFileRoute("/_authenticated/assinatura")({
   component: SignaturePage,
@@ -61,6 +62,9 @@ export const Route = createFileRoute("/_authenticated/assinatura")({
 });
 
 type ItemStatus = "pending" | "signing" | "signed" | "error";
+
+/** Formato de saída: assinatura destacada (.p7s) ou PDF com assinatura embutida. */
+type OutputFormat = "p7s" | "pdf";
 
 interface SignItem {
   id: string;
@@ -100,6 +104,7 @@ function SignaturePage() {
   // --- Fila de assinatura ------------------------------------------------
   const [items, setItems] = useState<SignItem[]>([]);
   const [signing, setSigning] = useState(false);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>("pdf");
   const [progress, setProgress] = useState(0);
 
   // --- Verificação -------------------------------------------------------
@@ -172,7 +177,10 @@ function SignaturePage() {
         prev.map((i) => (i.id === item.id ? { ...i, status: "signing", error: undefined } : i)),
       );
       try {
-        const signature = await signFileDetached(item.file, selectedCert);
+        const signature =
+          outputFormat === "pdf"
+            ? await signFileAsPdf(item.file, selectedCert)
+            : await signFileDetached(item.file, selectedCert);
         setItems((prev) =>
           prev.map((i) => (i.id === item.id ? { ...i, status: "signed", signature } : i)),
         );
@@ -191,7 +199,7 @@ function SignaturePage() {
 
     setSigning(false);
     toast.success(`Assinatura concluída (${pending.length} arquivo(s) processado(s)).`);
-  }, [items, selectedCert]);
+  }, [items, selectedCert, outputFormat]);
 
   const handleDownloadZip = useCallback(async () => {
     const signed = items.filter((i) => i.status === "signed" && i.signature);
@@ -207,8 +215,11 @@ function SignaturePage() {
         .join("\n"),
     );
     const blob = await zip.generateAsync({ type: "blob" });
-    downloadBlob(blob, `assinaturas-${new Date().toISOString().slice(0, 10)}.zip`);
-  }, [items]);
+    downloadBlob(
+      blob,
+      `${outputFormat === "pdf" ? "pdfs-assinados" : "assinaturas"}-${new Date().toISOString().slice(0, 10)}.zip`,
+    );
+  }, [items, outputFormat]);
 
   const handleVerify = useCallback(async () => {
     if (!verifyOriginal || !verifySig) {
@@ -359,6 +370,29 @@ function SignaturePage() {
                 event.target.value = "";
               }}
             />
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">Saída</Label>
+              <Select
+                value={outputFormat}
+                onValueChange={(value) => {
+                  setOutputFormat(value as OutputFormat);
+                  // Assinaturas já geradas pertencem ao formato anterior.
+                  setItems((prev) =>
+                    prev.map((i) => ({ ...i, status: "pending", signature: undefined, error: undefined })),
+                  );
+                  setProgress(0);
+                }}
+                disabled={signing}
+              >
+                <SelectTrigger className="w-[190px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF assinado (.pdf)</SelectItem>
+                  <SelectItem value="p7s">Assinatura destacada (.p7s)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button variant="outline" onClick={() => filesInputRef.current?.click()}>
               <UploadIcon className="h-4 w-4" />
               Selecionar imagens
@@ -445,7 +479,7 @@ function SignaturePage() {
                         }
                       >
                         <Download className="h-4 w-4" />
-                        .p7s
+                        {outputFormat === "pdf" ? ".pdf" : ".p7s"}
                       </Button>
                     )}
                     <Button
