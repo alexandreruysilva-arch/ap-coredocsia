@@ -43,6 +43,7 @@ import {
   Shield,
   LogOut,
   FileScan,
+  FileSignature,
   ChevronDown,
   ChevronRight,
   Check,
