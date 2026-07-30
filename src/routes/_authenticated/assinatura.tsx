@@ -356,7 +356,7 @@ function SignaturePage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <FileSignature className="h-4 w-4 text-blue-800" />
-            <h2 className="font-semibold">2. Imagens para assinar</h2>
+            <h2 className="font-semibold">2. Documentos/Imagens para assinar</h2>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <input
