@@ -22,6 +22,7 @@ import {
   rgb,
 } from "pdf-lib";
 import { SignatureError, type LoadedCertificate } from "@/lib/pkcs7-sign";
+import { buildDetachedCms } from "@/lib/cades";
 
 /** Tamanho reservado (em bytes) para o envelope PKCS#7 dentro do PDF. */
 const SIGNATURE_BYTE_LENGTH = 16384;
@@ -192,28 +193,15 @@ function embedSignature(pdfBytes: Uint8Array, signer: LoadedCertificate): Uint8A
   signable.set(output.subarray(0, byteRange[1]), 0);
   signable.set(output.subarray(byteRange[2]), byteRange[1]);
 
-  const p7 = forge.pkcs7.createSignedData();
-  p7.content = forge.util.createBuffer(binaryStringFromBytes(signable), "raw");
-  p7.addCertificate(signer.certificate);
-  signer.chain.forEach((cert) => p7.addCertificate(cert));
-  p7.addSigner({
-    key: signer.privateKey as forge.pki.rsa.PrivateKey,
+  // CMS destacado conforme ICP-Brasil: sha256WithRSAEncryption + signingCertificateV2.
+  const der = buildDetachedCms({
+    content: binaryStringFromBytes(signable),
     certificate: signer.certificate,
-    digestAlgorithm: forge.pki.oids.sha256,
-    authenticatedAttributes: [
-      { type: forge.pki.oids.contentType, value: forge.pki.oids.data },
-      { type: forge.pki.oids.messageDigest },
-      { type: forge.pki.oids.signingTime, value: new Date().toISOString() },
-    ],
+    privateKey: signer.privateKey as forge.pki.rsa.PrivateKey,
+    chain: signer.chain,
   });
-  p7.sign({ detached: true });
-
-  const der = forge.asn1.toDer(p7.toAsn1()).getBytes();
   if (der.length > SIGNATURE_BYTE_LENGTH) {
-    throw new SignatureError(
-      "Assinatura maior que o espaço reservado no PDF.",
-      "SIGN_FAILED",
-    );
+    throw new SignatureError("Assinatura maior que o espaço reservado no PDF.", "SIGN_FAILED");
   }
 
   let hex = "";

@@ -9,6 +9,7 @@
  * em storage nem enviada ao servidor.
  */
 import forge from "node-forge";
+import { buildDetachedCms, derToBytes, parseSignedAttributes } from "@/lib/cades";
 
 export interface CertificateInfo {
   /** Índice do "safe bag" dentro do PKCS#12 — usado para escolher o certificado. */
@@ -183,33 +184,20 @@ export async function signFileDetached(
     md.update(binary);
     const sha256 = md.digest().toHex();
 
-    const p7 = forge.pkcs7.createSignedData();
-    p7.content = forge.util.createBuffer(binary, "raw");
-    p7.addCertificate(signer.certificate);
-    // Cadeia ajuda validadores a montar o caminho de confiança.
-    signer.chain.forEach((cert) => p7.addCertificate(cert));
-
-    p7.addSigner({
-      key: signer.privateKey as forge.pki.rsa.PrivateKey,
+    // CMS CAdES-BES com sha256WithRSAEncryption + signingCertificateV2 (ICP-Brasil).
+    const der = buildDetachedCms({
+      content: binary,
       certificate: signer.certificate,
-      digestAlgorithm: forge.pki.oids.sha256,
-      authenticatedAttributes: [
-        { type: forge.pki.oids.contentType, value: forge.pki.oids.data },
-        { type: forge.pki.oids.messageDigest },
-        { type: forge.pki.oids.signingTime, value: new Date().toISOString() },
-      ],
+      privateKey: signer.privateKey as forge.pki.rsa.PrivateKey,
+      chain: signer.chain,
     });
-
-    // detached: true remove o conteúdo do envelope (assinatura destacada)
-    p7.sign({ detached: true });
-
-    const der = forge.asn1.toDer(p7.toAsn1()).getBytes();
-    const bytes = new Uint8Array(der.length);
-    for (let i = 0; i < der.length; i += 1) bytes[i] = der.charCodeAt(i) & 0xff;
+    const bytes = derToBytes(der);
 
     return {
       fileName: `${file.name}.p7s`,
-      blob: new Blob([bytes], { type: "application/pkcs7-signature" }),
+      blob: new Blob([bytes.slice().buffer as ArrayBuffer], {
+        type: "application/pkcs7-signature",
+      }),
       sha256,
     };
   } catch (error) {
@@ -243,15 +231,12 @@ export async function verifyDetachedSignature(
     const signerCN = signer ? commonName(signer.subject.attributes) : "—";
     const issuerCN = signer ? commonName(signer.issuer.attributes) : "—";
 
-    const rawSigner = (p7 as unknown as { signers?: Array<{ authenticatedAttributes?: Array<{ type: string; value: unknown }> }> })
-      .signers?.[0];
-    const attrs = rawSigner?.authenticatedAttributes ?? [];
+    // O node-forge não popula `signers` ao apenas ler um CMS: extraímos os
+    // atributos assinados diretamente da árvore ASN.1.
+    const { messageDigest, signingTime } = parseSignedAttributes(sigBinary);
+    const signedAt = signingTime;
 
-    const digestAttr = attrs.find((a) => a.type === forge.pki.oids.messageDigest);
-    const timeAttr = attrs.find((a) => a.type === forge.pki.oids.signingTime);
-    const signedAt = timeAttr?.value ? new Date(String(timeAttr.value)) : null;
-
-    if (!digestAttr?.value) {
+    if (!messageDigest) {
       return { valid: false, signerCN, issuerCN, signedAt, reason: "Assinatura sem messageDigest." };
     }
 
@@ -260,8 +245,7 @@ export async function verifyDetachedSignature(
     md.update(original);
     const expected = md.digest().getBytes();
 
-    const embedded = String(digestAttr.value);
-    const valid = embedded === expected;
+    const valid = messageDigest === expected;
 
     return {
       valid,
