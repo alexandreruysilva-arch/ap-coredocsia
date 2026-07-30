@@ -546,32 +546,30 @@ function SignaturePage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-blue-800" />
-          <h2 className="font-semibold">3. Verificar uma assinatura</h2>
+          <h2 className="font-semibold">3. Verificar um PDF assinado</h2>
         </div>
+        <p className="text-sm text-muted-foreground">
+          Selecione um PDF gerado nesta página (ou qualquer PDF com assinatura embutida). A
+          verificação é feita no navegador, comparando o conteúdo atual com o conteúdo assinado.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="verify-original">Imagem original</Label>
+          <div className="space-y-1.5 md:col-span-2">
+            <Label htmlFor="verify-pdf">PDF assinado (.pdf)</Label>
             <Input
-              id="verify-original"
+              id="verify-pdf"
               type="file"
-              accept={ACCEPTED_IMAGES}
-              onChange={(event) => setVerifyOriginal(event.target.files?.[0] ?? null)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="verify-sig">Assinatura (.p7s)</Label>
-            <Input
-              id="verify-sig"
-              type="file"
-              accept=".p7s"
-              onChange={(event) => setVerifySig(event.target.files?.[0] ?? null)}
+              accept="application/pdf,.pdf"
+              onChange={(event) => {
+                setVerifyPdf(event.target.files?.[0] ?? null);
+                setVerifyResult(null);
+              }}
             />
           </div>
           <div className="flex items-end">
             <Button
               variant="outline"
               onClick={() => void handleVerify()}
-              disabled={verifying || !verifyOriginal || !verifySig}
+              disabled={verifying || !verifyPdf}
             >
               {verifying ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -582,6 +580,7 @@ function SignaturePage() {
             </Button>
           </div>
         </div>
+
 
         {verifyResult && (
           <div
