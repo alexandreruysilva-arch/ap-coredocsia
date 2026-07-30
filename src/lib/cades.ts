@@ -70,6 +70,13 @@ function sha256Of(binary: string): forge.md.MessageDigest {
   return md;
 }
 
+/** Name (RDNSequence) do emissor do certificado. */
+function issuerToAsn1(certificate: forge.pki.Certificate): Asn1 {
+  return forge.pki.distinguishedNameToAsn1(
+    certificate.issuer as unknown as Parameters<typeof forge.pki.distinguishedNameToAsn1>[0],
+  );
+}
+
 /**
  * ESS SigningCertificateV2 (RFC 5035):
  *   SigningCertificateV2 ::= SEQUENCE { certs SEQUENCE OF ESSCertIDv2 }
@@ -80,9 +87,7 @@ function signingCertificateV2(certificate: forge.pki.Certificate): Asn1 {
   const certDer = derBytes(forge.pki.certificateToAsn1(certificate));
   const certHash = sha256Of(certDer).digest().getBytes();
 
-  const issuerName = forge.pki.distinguishedNameToAsn1({
-    attributes: certificate.issuer.attributes,
-  } as forge.pki.Certificate);
+  const issuerName = issuerToAsn1(certificate);
 
   // GeneralName ::= [4] EXPLICIT Name (directoryName)
   const directoryName = asn1.create(asn1.Class.CONTEXT_SPECIFIC, 4, true, [issuerName]);
@@ -154,9 +159,7 @@ export function buildDetachedCms(options: CmsOptions): string {
   const signedAttrsImplicit = asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, signedAttrs);
 
   const issuerAndSerial = seq([
-    forge.pki.distinguishedNameToAsn1({
-      attributes: certificate.issuer.attributes,
-    } as forge.pki.Certificate),
+    issuerToAsn1(certificate),
     asn1.create(
       asn1.Class.UNIVERSAL,
       asn1.Type.INTEGER,
