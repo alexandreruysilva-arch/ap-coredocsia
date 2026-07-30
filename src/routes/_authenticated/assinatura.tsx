@@ -248,14 +248,14 @@ function SignaturePage() {
   }, [items, outputFormat]);
 
   const handleVerify = useCallback(async () => {
-    if (!verifyOriginal || !verifySig) {
-      toast.error("Selecione a imagem original e o arquivo .p7s.");
+    if (!verifyPdf) {
+      toast.error("Selecione o PDF assinado que deseja verificar.");
       return;
     }
     setVerifying(true);
     setVerifyResult(null);
     try {
-      setVerifyResult(await verifyDetachedSignature(verifyOriginal, verifySig));
+      setVerifyResult(await verifySignedPdf(verifyPdf));
     } catch (error) {
       toast.error(
         error instanceof SignatureError ? error.message : "Falha ao verificar a assinatura.",
@@ -263,7 +263,8 @@ function SignaturePage() {
     } finally {
       setVerifying(false);
     }
-  }, [verifyOriginal, verifySig]);
+  }, [verifyPdf]);
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
