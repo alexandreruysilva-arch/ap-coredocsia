@@ -43,6 +43,7 @@ import {
   Shield,
   LogOut,
   FileScan,
+  FileSignature,
   ChevronDown,
   ChevronRight,
   Check,
@@ -60,6 +61,7 @@ const navMain = [
   { to: "/upload", label: "Upload", icon: Upload },
   { to: "/queue", label: "Fila de processamento", icon: ListChecks },
   { to: "/documents", label: "Documentos (GED)", icon: FolderOpen },
+  { to: "/assinatura", label: "Assinatura digital", icon: FileSignature },
 ];
 
 const navCadastro = [
