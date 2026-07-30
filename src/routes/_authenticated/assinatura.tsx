@@ -500,13 +500,22 @@ function SignaturePage() {
                     {item.signature && (
                       <Button
                         size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          downloadBlob(item.signature!.blob, item.signature!.fileName)
-                        }
+                        variant="outline"
+                        onClick={() => {
+                          const sig = item.signature!;
+                          const typed = sig.blob.type
+                            ? sig.blob
+                            : new Blob([sig.blob], {
+                                type:
+                                  outputFormat === "pdf"
+                                    ? "application/pdf"
+                                    : "application/pkcs7-signature",
+                              });
+                          downloadBlob(typed, sig.fileName);
+                        }}
                       >
                         <Download className="h-4 w-4" />
-                        {outputFormat === "pdf" ? ".pdf" : ".p7s"}
+                        Baixar {outputFormat === "pdf" ? "PDF" : ".p7s"}
                       </Button>
                     )}
                     <Button
