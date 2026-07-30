@@ -21,8 +21,12 @@ import {
   StandardFonts,
   rgb,
 } from "pdf-lib";
-import { SignatureError, type LoadedCertificate } from "@/lib/pkcs7-sign";
-import { buildDetachedCms } from "@/lib/cades";
+import {
+  SignatureError,
+  type LoadedCertificate,
+  type VerificationResult,
+} from "@/lib/pkcs7-sign";
+import { buildDetachedCms, parseSignedAttributes } from "@/lib/cades";
 
 /** Tamanho reservado (em bytes) para o envelope PKCS#7 dentro do PDF. */
 const SIGNATURE_BYTE_LENGTH = 16384;
@@ -250,5 +254,74 @@ export async function signFileAsPdf(
     if (error instanceof SignatureError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     throw new SignatureError(`Falha ao gerar PDF assinado: ${message}`, "SIGN_FAILED");
+  }
+}
+
+/**
+ * Verifica um PDF assinado (adbe.pkcs7.detached) diretamente: extrai o
+ * /ByteRange e o CMS de /Contents, recalcula o digest do conteúdo coberto e
+ * compara com o atributo autenticado messageDigest.
+ */
+export async function verifySignedPdf(file: File): Promise<VerificationResult> {
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const raw = latin1Decode(bytes);
+
+    const brMatch = /\/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]/.exec(raw);
+    if (!brMatch) {
+      throw new SignatureError(
+        "Este PDF não contém uma assinatura digital embutida.",
+        "VERIFY_FAILED",
+      );
+    }
+    const [a, b, c, d] = brMatch.slice(1).map(Number);
+
+    const gapStart = raw.indexOf("<", raw.indexOf("/Contents", brMatch.index));
+    const gapEnd = raw.indexOf(">", gapStart);
+    const hex = raw.slice(gapStart + 1, gapEnd).replace(/[^0-9a-fA-F]/g, "").replace(/(00)+$/, "");
+    let der = "";
+    for (let i = 0; i + 1 < hex.length; i += 2) {
+      der += String.fromCharCode(parseInt(hex.slice(i, i + 2), 16));
+    }
+
+    const p7 = forge.pkcs7.messageFromAsn1(
+      forge.asn1.fromDer(der),
+    ) as forge.pkcs7.PkcsSignedData;
+    const cert = p7.certificates?.[0];
+    const attrOf = (attrs: forge.pki.CertificateField[] | undefined) =>
+      attrs?.find((x) => x.shortName === "CN")?.value ?? "—";
+    const signerCN = String(attrOf(cert?.subject.attributes));
+    const issuerCN = String(attrOf(cert?.issuer.attributes));
+
+    const { messageDigest, signingTime } = parseSignedAttributes(der);
+    if (!messageDigest) {
+      return {
+        valid: false,
+        signerCN,
+        issuerCN,
+        signedAt: signingTime,
+        reason: "Assinatura sem messageDigest.",
+      };
+    }
+
+    const signable = new Uint8Array(b + d);
+    signable.set(bytes.subarray(a, a + b), 0);
+    signable.set(bytes.subarray(c, c + d), b);
+
+    const md = forge.md.sha256.create();
+    md.update(binaryStringFromBytes(signable));
+    const valid = md.digest().getBytes() === messageDigest;
+
+    return {
+      valid,
+      signerCN,
+      issuerCN,
+      signedAt: signingTime && !Number.isNaN(signingTime.getTime()) ? signingTime : null,
+      reason: valid ? undefined : "O PDF foi alterado após a assinatura.",
+    };
+  } catch (error) {
+    if (error instanceof SignatureError) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new SignatureError(`Não foi possível verificar o PDF: ${message}`, "VERIFY_FAILED");
   }
 }
