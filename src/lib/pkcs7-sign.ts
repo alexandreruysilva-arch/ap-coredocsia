@@ -195,7 +195,9 @@ export async function signFileDetached(
 
     return {
       fileName: `${file.name}.p7s`,
-      blob: new Blob([bytes], { type: "application/pkcs7-signature" }),
+      blob: new Blob([bytes.slice().buffer as ArrayBuffer], {
+        type: "application/pkcs7-signature",
+      }),
       sha256,
     };
   } catch (error) {
