@@ -9,7 +9,7 @@
  * em storage nem enviada ao servidor.
  */
 import forge from "node-forge";
-import { buildDetachedCms, derToBytes } from "@/lib/cades";
+import { buildDetachedCms, derToBytes, parseSignedAttributes } from "@/lib/cades";
 
 export interface CertificateInfo {
   /** Índice do "safe bag" dentro do PKCS#12 — usado para escolher o certificado. */
@@ -231,15 +231,12 @@ export async function verifyDetachedSignature(
     const signerCN = signer ? commonName(signer.subject.attributes) : "—";
     const issuerCN = signer ? commonName(signer.issuer.attributes) : "—";
 
-    const rawSigner = (p7 as unknown as { signers?: Array<{ authenticatedAttributes?: Array<{ type: string; value: unknown }> }> })
-      .signers?.[0];
-    const attrs = rawSigner?.authenticatedAttributes ?? [];
+    // O node-forge não popula `signers` ao apenas ler um CMS: extraímos os
+    // atributos assinados diretamente da árvore ASN.1.
+    const { messageDigest, signingTime } = parseSignedAttributes(sigBinary);
+    const signedAt = signingTime;
 
-    const digestAttr = attrs.find((a) => a.type === forge.pki.oids.messageDigest);
-    const timeAttr = attrs.find((a) => a.type === forge.pki.oids.signingTime);
-    const signedAt = timeAttr?.value ? new Date(String(timeAttr.value)) : null;
-
-    if (!digestAttr?.value) {
+    if (!messageDigest) {
       return { valid: false, signerCN, issuerCN, signedAt, reason: "Assinatura sem messageDigest." };
     }
 
@@ -248,8 +245,7 @@ export async function verifyDetachedSignature(
     md.update(original);
     const expected = md.digest().getBytes();
 
-    const embedded = String(digestAttr.value);
-    const valid = embedded === expected;
+    const valid = messageDigest === expected;
 
     return {
       valid,
