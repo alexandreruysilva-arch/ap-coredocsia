@@ -87,11 +87,18 @@ function downloadBlob(blob: Blob, fileName: string): void {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = fileName;
+  anchor.rel = "noopener";
+  anchor.style.display = "none";
   document.body.appendChild(anchor);
   anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  // O revoke imediato pode cancelar o download em alguns navegadores;
+  // liberamos a URL só depois que o navegador iniciou a transferência.
+  setTimeout(() => {
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, 4000);
 }
+
 
 function SignaturePage() {
   // --- Certificado -------------------------------------------------------
