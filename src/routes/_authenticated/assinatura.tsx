@@ -32,12 +32,11 @@ import { cn } from "@/lib/utils";
 import {
   loadPkcs12,
   signFileDetached,
-  verifyDetachedSignature,
   SignatureError,
   type LoadedCertificate,
   type VerificationResult,
 } from "@/lib/pkcs7-sign";
-import { signFileAsPdf } from "@/lib/pdf-sign";
+import { signFileAsPdf, verifySignedPdf } from "@/lib/pdf-sign";
 
 export const Route = createFileRoute("/_authenticated/assinatura")({
   component: SignaturePage,
@@ -115,10 +114,10 @@ function SignaturePage() {
   const [progress, setProgress] = useState(0);
 
   // --- Verificação -------------------------------------------------------
-  const [verifyOriginal, setVerifyOriginal] = useState<File | null>(null);
-  const [verifySig, setVerifySig] = useState<File | null>(null);
+  const [verifyPdf, setVerifyPdf] = useState<File | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerificationResult | null>(null);
   const [verifying, setVerifying] = useState(false);
+
 
   const filesInputRef = useRef<HTMLInputElement>(null);
 
@@ -248,14 +247,14 @@ function SignaturePage() {
   }, [items, outputFormat]);
 
   const handleVerify = useCallback(async () => {
-    if (!verifyOriginal || !verifySig) {
-      toast.error("Selecione a imagem original e o arquivo .p7s.");
+    if (!verifyPdf) {
+      toast.error("Selecione o PDF assinado que deseja verificar.");
       return;
     }
     setVerifying(true);
     setVerifyResult(null);
     try {
-      setVerifyResult(await verifyDetachedSignature(verifyOriginal, verifySig));
+      setVerifyResult(await verifySignedPdf(verifyPdf));
     } catch (error) {
       toast.error(
         error instanceof SignatureError ? error.message : "Falha ao verificar a assinatura.",
@@ -263,7 +262,8 @@ function SignaturePage() {
     } finally {
       setVerifying(false);
     }
-  }, [verifyOriginal, verifySig]);
+  }, [verifyPdf]);
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -545,32 +545,30 @@ function SignaturePage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-blue-800" />
-          <h2 className="font-semibold">3. Verificar uma assinatura</h2>
+          <h2 className="font-semibold">3. Verificar um PDF assinado</h2>
         </div>
+        <p className="text-sm text-muted-foreground">
+          Selecione um PDF gerado nesta página (ou qualquer PDF com assinatura embutida). A
+          verificação é feita no navegador, comparando o conteúdo atual com o conteúdo assinado.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="verify-original">Imagem original</Label>
+          <div className="space-y-1.5 md:col-span-2">
+            <Label htmlFor="verify-pdf">PDF assinado (.pdf)</Label>
             <Input
-              id="verify-original"
+              id="verify-pdf"
               type="file"
-              accept={ACCEPTED_IMAGES}
-              onChange={(event) => setVerifyOriginal(event.target.files?.[0] ?? null)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="verify-sig">Assinatura (.p7s)</Label>
-            <Input
-              id="verify-sig"
-              type="file"
-              accept=".p7s"
-              onChange={(event) => setVerifySig(event.target.files?.[0] ?? null)}
+              accept="application/pdf,.pdf"
+              onChange={(event) => {
+                setVerifyPdf(event.target.files?.[0] ?? null);
+                setVerifyResult(null);
+              }}
             />
           </div>
           <div className="flex items-end">
             <Button
               variant="outline"
               onClick={() => void handleVerify()}
-              disabled={verifying || !verifyOriginal || !verifySig}
+              disabled={verifying || !verifyPdf}
             >
               {verifying ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -581,6 +579,7 @@ function SignaturePage() {
             </Button>
           </div>
         </div>
+
 
         {verifyResult && (
           <div
@@ -593,7 +592,7 @@ function SignaturePage() {
           >
             <p className="font-medium">
               {verifyResult.valid
-                ? "Assinatura íntegra: o arquivo corresponde ao conteúdo assinado."
+                ? "Assinatura íntegra: o PDF não foi alterado após a assinatura."
                 : (verifyResult.reason ?? "Assinatura inválida.")}
             </p>
             <p className="text-muted-foreground">Signatário: {verifyResult.signerCN}</p>
