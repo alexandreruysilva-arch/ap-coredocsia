@@ -1091,8 +1091,9 @@ function ComplianceDialog({
 }) {
   const queryClient = useQueryClient();
   const getFn = useServerFn(getComplianceConfig);
+  const updateCompliance = useServerFn(updateComplianceConfig);
   const updateFn = useMutation({
-    mutationFn: (data: any) => useServerFn(updateComplianceConfig)({ data })
+    mutationFn: (data: any) => updateCompliance({ data })
   });
 
   const [isCompliant, setIsCompliant] = useState(false);
