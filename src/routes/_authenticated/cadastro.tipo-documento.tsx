@@ -1134,14 +1134,12 @@ function ComplianceDialog({
   const handleSave = async () => {
     if (!docType) return;
     try {
-      await updateFn({
-        data: {
-          document_type_id: docType.id,
-          decreto_compliant: isCompliant,
-          preservation_period_years: preservation,
-          quality_check_required: qualityCheck,
-          metadata_mapping: mapping,
-        }
+      await updateFn.mutateAsync({
+        document_type_id: docType.id,
+        decreto_compliant: isCompliant,
+        preservation_period_years: preservation,
+        quality_check_required: qualityCheck,
+        metadata_mapping: mapping,
       });
       toast.success("Configuração de conformidade salva");
       onClose();
