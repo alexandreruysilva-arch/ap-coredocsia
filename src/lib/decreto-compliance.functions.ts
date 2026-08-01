@@ -15,26 +15,35 @@ export const getComplianceConfig = createServerFn({ method: "GET" })
   .handler(async ({ data: typeId }) => {
     const { data, error } = await supabaseAdmin
       .from("document_types")
-      .select("decreto_compliant, compliance_config")
+      .select("*")
       .eq("id", typeId)
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Cast to any since these are new columns not yet in types.ts
+    const row = data as any;
+    return {
+      decreto_compliant: row.decreto_compliant ?? false,
+      compliance_config: row.compliance_config ?? {}
+    };
   });
 
 export const updateComplianceConfig = createServerFn({ method: "POST" })
   .inputValidator((data) => complianceConfigSchema.parse(data))
   .handler(async ({ data }) => {
     const { document_type_id, decreto_compliant, ...config } = data;
+    
+    // Use any to bypass strict type checking for new columns
     const { error } = await supabaseAdmin
       .from("document_types")
       .update({
         decreto_compliant,
         compliance_config: config
-      })
+      } as any)
       .eq("id", document_type_id);
 
     if (error) throw error;
     return { success: true };
   });
+
