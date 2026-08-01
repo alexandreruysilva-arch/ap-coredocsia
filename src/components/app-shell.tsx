@@ -44,7 +44,6 @@ import {
   LogOut,
   FileScan,
   FileSignature,
-  Scale,
   ChevronDown,
   ChevronRight,
   Check,
@@ -63,7 +62,6 @@ const navMain = [
   { to: "/queue", label: "Fila de processamento", icon: ListChecks },
   { to: "/documents", label: "Documentos (GED)", icon: FolderOpen },
   { to: "/assinatura", label: "Assinatura digital", icon: FileSignature },
-  { to: "/decreto-10278", label: "Decreto 10.278", icon: Scale },
 ];
 
 const navCadastro = [

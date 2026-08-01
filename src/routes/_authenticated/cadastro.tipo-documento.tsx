@@ -1,14 +1,13 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowDown, ArrowUp, Copy, Database, FileType, KeyRound, ListChecks, Pencil, Plus, Sparkles, Trash2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Database, FileType, KeyRound, ListChecks, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { LookupImportDialog } from "@/components/lookup-import-dialog";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { getComplianceConfig, updateComplianceConfig } from "@/lib/decreto-compliance.functions";
+
 
 import { PageHeader } from "@/components/page-stub";
 import { Button } from "@/components/ui/button";
@@ -110,7 +109,6 @@ function TipoDocumentoPage() {
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormVals, string>>>({});
   const [fieldsFor, setFieldsFor] = useState<DocTypeRow | null>(null);
-  const [complianceFor, setComplianceFor] = useState<DocTypeRow | null>(null);
   const [cloneSource, setCloneSource] = useState<DocTypeRow | null>(null);
   const [cloneName, setCloneName] = useState("");
   const [cloneSlug, setCloneSlug] = useState("");
@@ -391,15 +389,6 @@ function TipoDocumentoPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setComplianceFor(r)}
-                        className="mr-1 border-primary/30 hover:bg-primary/5"
-                        title="Configurar conformidade com o Decreto 10.278"
-                      >
-                        <ShieldCheck className="h-4 w-4 mr-1 text-primary" /> Conformidade
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
                         onClick={() => setFieldsFor(r)}
                         className="mr-1"
                       >
@@ -634,10 +623,6 @@ function TipoDocumentoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <ComplianceDialog
-        docType={complianceFor}
-        onClose={() => setComplianceFor(null)}
-      />
     </div>
 
   );
@@ -1077,180 +1062,6 @@ function FieldsDialog({
             companyId={docType.company_id ?? null}
           />
         )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function ComplianceDialog({
-  docType,
-  onClose,
-}: {
-  docType: DocTypeRow | null;
-  onClose: () => void;
-}) {
-  const queryClient = useQueryClient();
-  const getFn = useServerFn(getComplianceConfig);
-  const updateCompliance = useServerFn(updateComplianceConfig);
-  const updateFn = useMutation({
-    mutationFn: (data: any) => updateCompliance({ data })
-  });
-
-  const [isCompliant, setIsCompliant] = useState(false);
-  const [preservation, setPreservation] = useState(5);
-  const [qualityCheck, setQualityCheck] = useState(true);
-  const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Busca campos para o mapeamento
-  const fields = useQuery({
-    queryKey: ["doc-type-fields", docType?.id],
-    enabled: !!docType,
-    queryFn: async (): Promise<FieldRow[]> => {
-      const { data, error } = await supabase
-        .from("document_type_fields")
-        .select("*")
-        .eq("document_type_id", docType!.id)
-        .order("position");
-      if (error) throw error;
-      return (data ?? []) as FieldRow[];
-    },
-  });
-
-  useEffect(() => {
-    if (docType) {
-      setIsLoading(true);
-      getFn({ data: docType.id })
-        .then((data: any) => {
-          setIsCompliant(data.decreto_compliant);
-          setPreservation(data.compliance_config?.preservation_period_years ?? 5);
-          setQualityCheck(data.compliance_config?.quality_check_required ?? true);
-          setMapping(data.compliance_config?.metadata_mapping ?? {});
-        })
-        .finally(() => setIsLoading(false));
-    }
-  }, [docType]);
-
-  const handleSave = async () => {
-    if (!docType) return;
-    try {
-      await updateFn.mutateAsync({
-        document_type_id: docType.id,
-        decreto_compliant: isCompliant,
-        preservation_period_years: preservation,
-        quality_check_required: qualityCheck,
-        metadata_mapping: mapping,
-      });
-      toast.success("Configuração de conformidade salva");
-      onClose();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar conformidade");
-    }
-  };
-
-  const decretoMetadata = [
-    { key: "data_digitalizacao", label: "Data de Digitalização" },
-    { key: "responsavel_digitalizacao", label: "Responsável pela Digitalização" },
-    { key: "integridade_hash", label: "Hash de Integridade" },
-    { key: "localizacao_geografica", label: "Localização Geográfica (opcional)" },
-  ];
-
-  return (
-    <Dialog open={!!docType} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            Conformidade Decreto 10.278 — {docType?.name}
-          </DialogTitle>
-          <DialogDescription>
-            Mapeie os campos de indexação aos metadados exigidos pelo decreto.
-          </DialogDescription>
-        </DialogHeader>
-
-        {isLoading ? (
-          <div className="py-12 space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        ) : (
-          <div className="space-y-6 py-4">
-            <div className="flex items-start gap-3 p-4 rounded-lg border bg-primary/5 border-primary/20">
-              <Checkbox 
-                id="compliant" 
-                checked={isCompliant} 
-                onCheckedChange={(c) => setIsCompliant(c === true)} 
-                className="mt-1"
-              />
-              <div className="space-y-1">
-                <Label htmlFor="compliant" className="text-base font-bold cursor-pointer">Ativar fluxo de conformidade</Label>
-                <p className="text-xs text-muted-foreground">
-                  Documentos deste tipo serão marcados como digitalizados conforme o Decreto 10.278 e exigirão assinatura digital.
-                </p>
-              </div>
-            </div>
-
-            {isCompliant && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Prazo de Preservação (Anos)</Label>
-                    <Select value={String(preservation)} onValueChange={(v) => setPreservation(Number(v))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[5, 10, 20, 50].map(y => (
-                          <SelectItem key={y} value={String(y)}>{y} anos</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center gap-2 pt-6">
-                    <Checkbox id="qc" checked={qualityCheck} onCheckedChange={(c) => setQualityCheck(c === true)} />
-                    <Label htmlFor="qc">Exigir conferência de qualidade</Label>
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold border-b pb-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Mapeamento de Metadados Obrigatórios
-                  </div>
-                  
-                  <div className="grid gap-4">
-                    {decretoMetadata.map((meta) => (
-                      <div key={meta.key} className="grid grid-cols-2 items-center gap-4">
-                        <Label className="text-xs">{meta.label}</Label>
-                        <Select 
-                          value={mapping[meta.key] || "auto"} 
-                          onValueChange={(v) => setMapping(prev => ({ ...prev, [meta.key]: v }))}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="auto">Preenchimento Automático</SelectItem>
-                            {(fields.data ?? []).map(f => (
-                              <SelectItem key={f.id} value={f.field_key}>{f.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={updateFn.isPending}>
-            {updateFn.isPending ? "Salvando..." : "Salvar Configuração"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
