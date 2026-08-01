@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollText, ShieldCheck, FileCheck2, Info } from "lucide-react";
+import { ScrollText, ShieldCheck, FileCheck2, Info, CheckCircle2, ListChecks, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute('/_authenticated/decreto-10278')({
   component: Decreto10278Page,
@@ -16,17 +16,101 @@ function Decreto10278Page() {
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold tracking-tight">Decreto nº 10.278/2020</h1>
+              <h1 className="text-2xl font-display font-bold tracking-tight">Implementação de Fluxo para Conformidade com o Decreto nº 10.278/2020</h1>
               <p className="text-sm text-muted-foreground">
-                Regulamentação da digitalização de documentos públicos e privados.
+                Diretrizes e requisitos para digitalização de documentos públicos.
               </p>
             </div>
           </div>
+          <a 
+            href="https://www.gov.br/conarq/pt-br/legislacao-arquivistica/decretos-federais/decreto-no-10-278-de-18-de-marco-de-2020" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
+          >
+            Ver Legislação <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-5xl mx-auto space-y-6 pb-12">
+        <div className="max-w-5xl mx-auto space-y-8 pb-12">
+          
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              Objetivo
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Desenvolver um fluxo de trabalho que garanta a conformidade com os requisitos do Decreto nº 10.278, de 18 de março de 2020, após a indexação de imagens. O fluxo deve ser construído com base nas diretrizes estabelecidas no decreto, que regulamenta a digitalização de documentos públicos.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ListChecks className="h-5 w-5 text-primary" />
+                  Requisitos Técnicos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">1. Análise do Decreto</h4>
+                  <p className="text-xs text-muted-foreground">Detalhamento dos artigos e incisos relevantes que impactam o processo de indexação.</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">2. Mapeamento do Fluxo</h4>
+                  <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                    <li>Etapas desde o recebimento até a disponibilização final.</li>
+                    <li>Pontos de controle de qualidade e validação.</li>
+                    <li>Especificação de metadados obrigatórios para indexação.</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">3. Indexação de Imagens</h4>
+                  <p className="text-xs text-muted-foreground">Garantia de padrões de metadados, integridade e autenticidade das imagens digitalizadas.</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">4. Armazenamento e Acesso</h4>
+                  <p className="text-xs text-muted-foreground">Preservação a longo prazo e mecanismos de busca e recuperação eficientes.</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">5. Segurança e Integridade</h4>
+                  <p className="text-xs text-muted-foreground">Proteção contra acesso não autorizado e rastreabilidade total das operações.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" />
+                  Passos Necessários
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    "Análise aprofundada do Decreto nº 10.278/2020.",
+                    "Elaboração de fluxograma detalhado do processo.",
+                    "Definição dos padrões de metadados alinhados com o decreto.",
+                    "Especificação técnica da ferramenta de fluxo.",
+                    "Desenvolvimento de Procedimentos Operacionais Padrão (POPs).",
+                    "Implementação e teste de conformidade do fluxo.",
+                    "Treinamento para os usuários envolvidos.",
+                    "Plano de monitoramento e auditoria contínua."
+                  ].map((step, index) => (
+                    <div key={index} className="flex gap-3 p-2 rounded-md bg-background/50 border border-border/50">
+                      <span className="text-xs font-bold text-primary shrink-0 w-4">{index + 1}.</span>
+                      <p className="text-xs text-muted-foreground">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center space-x-2">
@@ -64,51 +148,6 @@ function Decreto10278Page() {
               </CardContent>
             </Card>
           </div>
-
-          <Card className="border-primary/20 bg-primary/5 overflow-hidden">
-            <div className="h-1 bg-primary/20 w-full" />
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Info className="h-5 w-5 text-primary" />
-                <CardTitle>Conformidade do Sistema</CardTitle>
-              </div>
-              <CardDescription>
-                Como o AP - CoreDocs IA atende aos requisitos do Decreto:
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex gap-3 p-3 rounded-lg bg-background/50">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold">Assinatura Digital</p>
-                    <p className="text-xs text-muted-foreground">Integração com certificados ICP-Brasil para assinatura em lote.</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 rounded-lg bg-background/50">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold">Metadados</p>
-                    <p className="text-xs text-muted-foreground">Extração automática de dados via IA para indexação documental obrigatória.</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 rounded-lg bg-background/50">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold">Resolução</p>
-                    <p className="text-xs text-muted-foreground">Suporte a processamento de imagens em alta resolução conforme exigido.</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 rounded-lg bg-background/50">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold">Padrões Abertos</p>
-                    <p className="text-xs text-muted-foreground">Geração de PDFs assinados seguindo normas técnicas de interoperabilidade.</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
