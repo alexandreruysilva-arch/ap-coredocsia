@@ -1,12 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollText, ShieldCheck, FileCheck2, Info, CheckCircle2, ListChecks, ExternalLink } from "lucide-react";
+import { ScrollText, ShieldCheck, FileCheck2, Info, CheckCircle2, ListChecks, ExternalLink, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute('/_authenticated/decreto-10278')({
   component: Decreto10278Page,
 });
 
 function Decreto10278Page() {
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-none border-b bg-card/50 backdrop-blur-sm p-6 space-y-4">
@@ -22,14 +25,23 @@ function Decreto10278Page() {
               </p>
             </div>
           </div>
-          <a 
-            href="https://www.gov.br/conarq/pt-br/legislacao-arquivistica/decretos-federais/decreto-no-10-278-de-18-de-marco-de-2020" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-          >
-            Ver Legislação <ExternalLink className="h-3 w-3" />
-          </a>
+          <div className="flex items-center gap-3">
+            <a 
+              href="https://www.gov.br/conarq/pt-br/legislacao-arquivistica/decretos-federais/decreto-no-10-278-de-18-de-marco-de-2020" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
+            >
+              Ver Legislação <ExternalLink className="h-3 w-3" />
+            </a>
+            <Button 
+              onClick={() => navigate({ to: '/cadastro/tipo-documento' })}
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+            >
+              Passos Seguintes <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
