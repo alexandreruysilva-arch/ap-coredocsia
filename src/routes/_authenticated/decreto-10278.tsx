@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   Scale,
   Sparkles,
@@ -13,6 +16,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import {
+  getChecklistState,
+  resetChecklist,
+  saveChecklistItem,
+  type ChecklistStatusValue,
+} from "@/lib/compliance.functions";
 
 export const Route = createFileRoute("/_authenticated/decreto-10278")({
   component: Decreto10278Page,
@@ -122,8 +131,6 @@ const CHECKLIST: readonly ChecklistItem[] = [
   },
 ];
 
-const STORAGE_KEY = "decreto-10278-checklist";
-
 const STATUS_META: Record<
   ItemStatus,
   { label: string; icon: typeof CheckCircle2; className: string }
@@ -151,46 +158,61 @@ function initialState(): StatusMap {
   return Object.fromEntries(CHECKLIST.map((i) => [i.id, "pendente" as ItemStatus]));
 }
 
-/** Lê o estado persistido com validação defensiva — dados locais não são confiáveis. */
-function readStored(): StatusMap {
-  if (typeof window === "undefined") return initialState();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return initialState();
-    const parsed = JSON.parse(raw) as unknown;
-    if (typeof parsed !== "object" || parsed === null) return initialState();
+function Decreto10278Page() {
+  const queryClient = useQueryClient();
+  const fetchState = useServerFn(getChecklistState);
+  const persistItem = useServerFn(saveChecklistItem);
+  const persistReset = useServerFn(resetChecklist);
+
+  const [status, setStatus] = useState<StatusMap>(initialState);
+
+  // Estado persistido por organização no Supabase (substitui o localStorage).
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["decreto-10278-checklist"],
+    queryFn: () => fetchState({}),
+    staleTime: 30_000,
+  });
+
+  // Sincroniza o estado local com o que veio do servidor ao carregar a página.
+  useEffect(() => {
+    if (!data) return;
     const base = initialState();
     for (const item of CHECKLIST) {
-      const value = (parsed as Record<string, unknown>)[item.id];
-      if (value === "conforme" || value === "pendente" || value === "nao_aplicavel") {
-        // Itens obrigatórios nunca podem ficar como "não aplicável".
-        base[item.id] = value === "nao_aplicavel" && item.obrigatorio ? "pendente" : value;
-      }
+      const value = data.statuses[item.id];
+      if (!value) continue;
+      // Itens obrigatórios nunca podem ficar como "não aplicável".
+      base[item.id] = value === "nao_aplicavel" && item.obrigatorio ? "pendente" : value;
     }
-    return base;
-  } catch {
-    return initialState();
-  }
-}
+    setStatus(base);
+  }, [data]);
 
-function Decreto10278Page() {
-  const [status, setStatus] = useState<StatusMap>(initialState);
-  const [hydrated, setHydrated] = useState(false);
+  const saveMutation = useMutation({
+    mutationFn: (vars: { itemId: string; status: ChecklistStatusValue }) =>
+      persistItem({ data: vars }),
+    onError: (error: unknown) => {
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível salvar o item.",
+      );
+      void queryClient.invalidateQueries({ queryKey: ["decreto-10278-checklist"] });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["decreto-10278-checklist"] });
+    },
+  });
 
-  // localStorage só existe no cliente — ler após a hidratação evita mismatch de SSR.
-  useEffect(() => {
-    setStatus(readStored());
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(status));
-    } catch {
-      // Armazenamento indisponível (modo privado / cota) — o checklist segue funcional em memória.
-    }
-  }, [status, hydrated]);
+  const resetMutation = useMutation({
+    mutationFn: () => persistReset({}),
+    onError: (error: unknown) => {
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível reiniciar o checklist.",
+      );
+      void queryClient.invalidateQueries({ queryKey: ["decreto-10278-checklist"] });
+    },
+    onSuccess: () => {
+      toast.success("Checklist reiniciado.");
+      void queryClient.invalidateQueries({ queryKey: ["decreto-10278-checklist"] });
+    },
+  });
 
   const resumo = useMemo(() => {
     const aplicaveis = CHECKLIST.filter((i) => status[i.id] !== "nao_aplicavel");
@@ -212,12 +234,15 @@ function Decreto10278Page() {
     };
   }, [status]);
 
+  // Atualização otimista: a UI responde na hora e o servidor confirma em seguida.
   function setItem(id: string, value: ItemStatus) {
     setStatus((prev) => ({ ...prev, [id]: value }));
+    saveMutation.mutate({ itemId: id, status: value });
   }
 
   function reset() {
     setStatus(initialState());
+    resetMutation.mutate();
   }
 
   return (
@@ -292,9 +317,17 @@ function Decreto10278Page() {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {resumo.total} requisitos · {resumo.naoAplicaveis} marcados como não aplicáveis
+              {isLoading && " · carregando..."}
+              {saveMutation.isPending && " · salvando..."}
+              {isError && " · falha ao carregar status salvo"}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={reset}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={reset}
+            disabled={isLoading || resetMutation.isPending}
+          >
             <RotateCcw className="h-4 w-4 mr-2" /> Reiniciar
           </Button>
         </div>
