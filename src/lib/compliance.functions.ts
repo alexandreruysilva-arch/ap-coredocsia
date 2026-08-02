@@ -50,6 +50,7 @@ async function resolveOrgId(
 export const getChecklistState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ChecklistStateResult> => {
+    const { supabase, userId } = context;
     const db = supabase as unknown as { from: (t: string) => any };
     const orgId = await resolveOrgId(db, userId);
     if (!orgId) return { orgId: null, statuses: {} };
@@ -75,6 +76,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => saveSchema.parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabase, userId } = context;
     const db = supabase as unknown as { from: (t: string) => any };
     const orgId = await resolveOrgId(db, userId);
     if (!orgId) throw new Error("Usuário sem organização ativa.");
@@ -99,6 +101,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
 export const resetChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ ok: true }> => {
+    const { supabase, userId } = context;
     const db = supabase as unknown as { from: (t: string) => any };
     const orgId = await resolveOrgId(db, userId);
     if (!orgId) return { ok: true };
