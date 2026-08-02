@@ -11,6 +11,17 @@ export type ChecklistStatusValue = "pendente" | "conforme" | "nao_aplicavel";
 export interface ChecklistStateResult {
   orgId: string | null;
   statuses: Record<string, ChecklistStatusValue>;
+  /** false quando a tabela de persistência ainda não existe no banco. */
+  ready: boolean;
+}
+
+/** Erros que indicam que a tabela ainda não foi criada no banco do cliente. */
+function isMissingTable(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    (error.message ?? "").includes("compliance_checklist_status")
+  );
 }
 
 const statusSchema = z.enum(["pendente", "conforme", "nao_aplicavel"]);
@@ -53,7 +64,7 @@ export const getChecklistState = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const db = supabase as unknown as { from: (t: string) => any };
     const orgId = await resolveOrgId(db, userId);
-    if (!orgId) return { orgId: null, statuses: {} };
+    if (!orgId) return { orgId: null, statuses: {}, ready: true };
 
     const { data, error } = await db
       .from("compliance_checklist_status")
@@ -61,14 +72,17 @@ export const getChecklistState = createServerFn({ method: "GET" })
       .eq("org_id", orgId)
       .eq("checklist_key", DECRETO_10278_KEY);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingTable(error)) return { orgId, statuses: {}, ready: false };
+      throw new Error(error.message);
+    }
 
     const statuses: Record<string, ChecklistStatusValue> = {};
     for (const row of (data ?? []) as Array<{ item_id: string; status: string }>) {
       const parsed = statusSchema.safeParse(row.status);
       if (parsed.success) statuses[row.item_id] = parsed.data;
     }
-    return { orgId, statuses };
+    return { orgId, statuses, ready: true };
   });
 
 /** Persiste (upsert) o status de um item do checklist para a organização corrente. */
