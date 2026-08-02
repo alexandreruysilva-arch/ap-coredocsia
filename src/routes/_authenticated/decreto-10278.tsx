@@ -320,6 +320,8 @@ function Decreto10278Page() {
               {isLoading && " · carregando..."}
               {saveMutation.isPending && " · salvando..."}
               {isError && " · falha ao carregar status salvo"}
+              {data?.ready === false &&
+                " · persistência indisponível: crie a tabela compliance_checklist_status no banco"}
             </p>
           </div>
           <Button
