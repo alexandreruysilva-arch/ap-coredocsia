@@ -51,6 +51,7 @@ import {
   Building2,
   FileType,
   Users,
+  Scale,
 } from "lucide-react";
 import { useProfileBundle } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +63,7 @@ const navMain = [
   { to: "/queue", label: "Fila de processamento", icon: ListChecks },
   { to: "/documents", label: "Documentos (GED)", icon: FolderOpen },
   { to: "/assinatura", label: "Assinatura digital", icon: FileSignature },
+  { to: "/decreto-10278", label: "Decreto 10.278/2020", icon: Scale },
 ];
 
 const navCadastro = [

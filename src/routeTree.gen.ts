@@ -19,6 +19,7 @@ import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRetentionRouteImport } from './routes/_authenticated/retention'
 import { Route as AuthenticatedQueueRouteImport } from './routes/_authenticated/queue'
+import { Route as AuthenticatedDecreto10278RouteImport } from './routes/_authenticated/decreto-10278'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
@@ -81,6 +82,12 @@ const AuthenticatedQueueRoute = AuthenticatedQueueRouteImport.update({
   path: '/queue',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDecreto10278Route =
+  AuthenticatedDecreto10278RouteImport.update({
+    id: '/decreto-10278',
+    path: '/decreto-10278',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -158,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuthenticatedAuditRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/decreto-10278': typeof AuthenticatedDecreto10278Route
   '/queue': typeof AuthenticatedQueueRoute
   '/retention': typeof AuthenticatedRetentionRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -181,6 +189,7 @@ export interface FileRoutesByTo {
   '/audit': typeof AuthenticatedAuditRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/decreto-10278': typeof AuthenticatedDecreto10278Route
   '/queue': typeof AuthenticatedQueueRoute
   '/retention': typeof AuthenticatedRetentionRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/decreto-10278': typeof AuthenticatedDecreto10278Route
   '/_authenticated/queue': typeof AuthenticatedQueueRoute
   '/_authenticated/retention': typeof AuthenticatedRetentionRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/credits'
     | '/dashboard'
+    | '/decreto-10278'
     | '/queue'
     | '/retention'
     | '/settings'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/credits'
     | '/dashboard'
+    | '/decreto-10278'
     | '/queue'
     | '/retention'
     | '/settings'
@@ -278,6 +290,7 @@ export interface FileRouteTypes {
     | '/_authenticated/audit'
     | '/_authenticated/credits'
     | '/_authenticated/dashboard'
+    | '/_authenticated/decreto-10278'
     | '/_authenticated/queue'
     | '/_authenticated/retention'
     | '/_authenticated/settings'
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/queue'
       fullPath: '/queue'
       preLoaderRoute: typeof AuthenticatedQueueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/decreto-10278': {
+      id: '/_authenticated/decreto-10278'
+      path: '/decreto-10278'
+      fullPath: '/decreto-10278'
+      preLoaderRoute: typeof AuthenticatedDecreto10278RouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -466,6 +486,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDecreto10278Route: typeof AuthenticatedDecreto10278Route
   AuthenticatedQueueRoute: typeof AuthenticatedQueueRoute
   AuthenticatedRetentionRoute: typeof AuthenticatedRetentionRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -486,6 +507,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDecreto10278Route: AuthenticatedDecreto10278Route,
   AuthenticatedQueueRoute: AuthenticatedQueueRoute,
   AuthenticatedRetentionRoute: AuthenticatedRetentionRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
