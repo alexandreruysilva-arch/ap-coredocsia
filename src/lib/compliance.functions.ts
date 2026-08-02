@@ -50,11 +50,11 @@ async function resolveOrgId(
 export const getChecklistState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ChecklistStateResult> => {
-    const { supabase, userId } = context;
-    const orgId = await resolveOrgId(supabase as never, userId);
+    const db = supabase as unknown as { from: (t: string) => any };
+    const orgId = await resolveOrgId(db, userId);
     if (!orgId) return { orgId: null, statuses: {} };
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("compliance_checklist_status")
       .select("item_id, status")
       .eq("org_id", orgId)
@@ -63,9 +63,9 @@ export const getChecklistState = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const statuses: Record<string, ChecklistStatusValue> = {};
-    for (const row of data ?? []) {
-      const parsed = statusSchema.safeParse((row as { status: string }).status);
-      if (parsed.success) statuses[(row as { item_id: string }).item_id] = parsed.data;
+    for (const row of (data ?? []) as Array<{ item_id: string; status: string }>) {
+      const parsed = statusSchema.safeParse(row.status);
+      if (parsed.success) statuses[row.item_id] = parsed.data;
     }
     return { orgId, statuses };
   });
@@ -75,11 +75,11 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => saveSchema.parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { supabase, userId } = context;
-    const orgId = await resolveOrgId(supabase as never, userId);
+    const db = supabase as unknown as { from: (t: string) => any };
+    const orgId = await resolveOrgId(db, userId);
     if (!orgId) throw new Error("Usuário sem organização ativa.");
 
-    const { error } = await supabase.from("compliance_checklist_status").upsert(
+    const { error } = await db.from("compliance_checklist_status").upsert(
       {
         org_id: orgId,
         checklist_key: DECRETO_10278_KEY,
@@ -99,11 +99,11 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
 export const resetChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ ok: true }> => {
-    const { supabase, userId } = context;
-    const orgId = await resolveOrgId(supabase as never, userId);
+    const db = supabase as unknown as { from: (t: string) => any };
+    const orgId = await resolveOrgId(db, userId);
     if (!orgId) return { ok: true };
 
-    const { error } = await supabase
+    const { error } = await db
       .from("compliance_checklist_status")
       .delete()
       .eq("org_id", orgId)
