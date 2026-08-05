@@ -148,7 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   AP - CoreDocs IA
                 </span>
                 <span className="text-[10px] font-medium tracking-[0.12em] text-sidebar-foreground/60 uppercase">
-                  Plataforma IA V.01.02
+                  Plataforma IA V.01.03
                 </span>
               </div>
             </Link>
